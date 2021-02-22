@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) 2018. Open Text Corporation. All Rights Reserved.
+ */
 package com.emc.documentum.rest.client.sample.client.annotation;
 
 import java.lang.annotation.ElementType;

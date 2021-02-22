@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. EMC Corporation. All Rights Reserved.
+ * Copyright (c) 2018. Open Text Corporation. All Rights Reserved.
  */
 package com.emc.documentum.rest.client.sample.model.xml.jaxb;
 
@@ -82,7 +82,7 @@ public abstract class JaxbFeedBase<T extends Linkable, E extends Entry<T>> exten
     }
 
     @Override
-    @XmlElement(name="items-per-page", namespace=XMLNamespace.DM_NAMESPACE)
+    @XmlElement(name="items-per-page")
     public Integer getItemsPerPage() {
         return itemsPerPage;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. EMC Corporation. All Rights Reserved.
+ * Copyright (c) 2018. Open Text Corporation. All Rights Reserved.
  */
 package com.emc.documentum.rest.client.sample.model;
 
@@ -32,7 +32,9 @@ public enum LinkRelation {
     TYPES("types", true),
     ASPECT_TYPES("aspect-types", true),
     ASSIS_VALUES("assist-values", true),
-    OBJECT_ASPECTS("object-aspects", true),
+    ACL("acl", true),
+    ARCHIVED_CONTENTS("archived-contents", true),
+    DISTRIBUTED_UPLOAD("distributed-upload", true),
     
     // Documentum specific link relations
     FOLDERS("folders", true),
@@ -46,7 +48,15 @@ public enum LinkRelation {
     DEFAULT_FOLDER("default-folder", true),
     RELATIONS("relations", true),
     RELATION_TYPES("relation-types", true),
- 
+    ACLS("acls", true),
+    ASSOCIATIONS("associations", true),
+    PERMISSIONS("permissions", true),
+    PERMISSION_SET("permission-set", true),
+    OBJECT_ASPECTS("object-aspects", true),
+    COMMENTS("comments", true),
+    REPLIES("replies", true),
+    VIRTUAL_DOCUMENT_NODES("virtual-document-nodes", true),
+    
     //Home Document link relations
     REPOSITORIES("repositories", true),
     ABOUT("about", false),
@@ -77,11 +87,42 @@ public enum LinkRelation {
     
     DQL("dql", true),
     SEARCH("search", true),
+    SAVED_SEARCHES("saved-searches", true),
+    SAVED_SEARCH_SAVED_RESULTS("saved-search-results", true),
+    SEARCH_EXECUTION("search-execution", true),
+    SEARCH_TEMPLATES("search-templates", true),
     CABINETS("cabinets", true),
     FORMATS("formats", true),
     NETWORK_LOCATIONS("network-locations", true),
     PARENT_LINKS("parent-links", true),
-    CHILD_LINKS("child-links", true);
+    CHILD_LINKS("child-links", true),
+    
+    //for lifecycle
+    LIFECYCLES("lifecycles", true),
+    LIFECYCLE("lifecycle", true),
+    OBJECT_LIFECYCLE("object-lifecycle", true),
+    PROMOTION("promotion", true),
+    DEMOTION("demotion", true),
+    SUSPENSION("suspension", true),
+    RESUMPTION("resumption", true),
+    CANCEL_PROMOTION("cancel-promotion", true),
+    CANCEL_DEMOTION("cancel-demotion", true),
+    CANCEL_SUSPENSION("cancel-suspension", true),
+    CANCEL_RESUMPTION("cancel-resumption", true),
+    
+    //subscription
+    SUBSCRIPTIONS("subscriptions", true),
+    SUBSCRIBE("subscribe", true),
+    UNSUBSCRIBE("unsubscribe", true),
+    
+    //audit
+    AUDIT_TRAILS("audit-trails", true),
+    RECENT_TRAILS("recent-trails", true),
+    AUDITED_OBJECT("audited-object", true),
+    AVAILABLE_AUDIT_EVENTS("available-audit-events", true),
+    REGISTERED_AUDIT_EVENTS("registered-audit-events", true),
+    UNREGISTER_ALL_AUDIT_EVENTS("unregister-all-audit-events", true),
+    AUDIT_POLICIES("audit-policies", true);
     
     private static final String PREFIX = "http://identifiers.emc.com/linkrel/";
     private final String rel;

@@ -1,9 +1,8 @@
 /*
- * Copyright (c) 2016. EMC Corporation. All Rights Reserved.
+ * Copyright (c) 2018. Open Text Corporation. All Rights Reserved.
  */
 package com.emc.documentum.rest.client.sample.model.json;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -38,9 +37,10 @@ public class JsonFacet extends JsonInlineLinkableBase implements Facet {
         this.label = label;
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
     public List<FacetValue> getValues() {
-        return values==null?null:new ArrayList<FacetValue>(values);
+        return (List)values;
     }
 
     public void setValues(List<JsonFacetValue> values) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. EMC Corporation. All Rights Reserved.
+ * Copyright (c) 2018. Open Text Corporation. All Rights Reserved.
  */
 package com.emc.documentum.rest.client.sample.client.impl.jaxb;
 
@@ -39,7 +39,12 @@ public class DCTMJaxbErrorHandler implements ResponseErrorHandler {
         RestError error = null;
         for(HttpMessageConverter converter : converters) {
             if(converter.canRead(JaxbRestError.class, mediaType)) {
-                error = (RestError)converter.read(JaxbRestError.class, response);
+                try {
+                    error = (RestError)converter.read(JaxbRestError.class, response);
+                } catch(Exception e) {
+                    error = new JaxbRestError();
+                    ((JaxbRestError)error).setStatus(response.getRawStatusCode());
+                }
                 break;
             }
         }

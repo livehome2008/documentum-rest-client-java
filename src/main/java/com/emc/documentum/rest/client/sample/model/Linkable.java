@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. EMC Corporation. All Rights Reserved.
+ * Copyright (c) 2018. Open Text Corporation. All Rights Reserved.
  */
 package com.emc.documentum.rest.client.sample.model;
 
@@ -15,14 +15,21 @@ public interface Linkable {
     List<Link> getLinks();
     
     /**
-     * @param rel
+     * @param rel the link relation
      * @return specified link by relation
      */
     String getHref(LinkRelation rel);
     
     /**
-     * @param rel
-     * @param title
+     * whether has the link relation
+     * @param rel the link relation
+     * @return whether has the link relation
+     */
+    boolean hasHref(LinkRelation rel);
+    
+    /**
+     * @param rel the link relation
+     * @param title the link title
      * @return specified link by relation and title
      */
     String getHref(LinkRelation rel, String title);

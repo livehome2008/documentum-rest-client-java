@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. EMC Corporation. All Rights Reserved.
+ * Copyright (c) 2018. Open Text Corporation. All Rights Reserved.
  */
 package com.emc.documentum.rest.client.sample.cases;
 
@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
@@ -23,11 +25,13 @@ import com.emc.documentum.rest.client.sample.client.annotation.RestServiceVersio
 import com.emc.documentum.rest.client.sample.client.util.Debug;
 
 import static com.emc.documentum.rest.client.sample.client.util.Debug.printNewLine;
+import static com.emc.documentum.rest.client.sample.client.util.Reader.readEnterToContinue;
 
 public abstract class Sample {
     protected DCTMRestClient client;
     protected double version;
     protected String name;
+    protected boolean throwException = false;
     
     public Sample() {
         name = ((RestServiceSample)this.getClass().getAnnotation(RestServiceSample.class)).value();
@@ -65,6 +69,12 @@ public abstract class Sample {
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
+        Collections.sort(list, new Comparator<Sample>() {
+            @Override
+            public int compare(Sample o1, Sample o2) {
+                return o1.getClass().getAnnotation(RestServiceSample.class).value().compareTo(o2.getClass().getAnnotation(RestServiceSample.class).value());
+            }
+        });
         return list;
     }
     
@@ -85,15 +95,25 @@ public abstract class Sample {
     @RestServiceSampleExclude
     public void run() {
         System.out.println("start " + name + " samples");
+        boolean needPressEnter = false;
         for(Method m : this.getClass().getMethods()) {
-            if(!Object.class.equals(m.getDeclaringClass()) && m.getParameterTypes().length == 0 && m.getAnnotation(RestServiceSampleExclude.class)==null && void.class.equals(m.getReturnType())) {
+            if(!Object.class.equals(m.getDeclaringClass()) && m.getParameterTypes().length == 0
+                    && m.getAnnotation(RestServiceSampleExclude.class)==null && void.class.equals(m.getReturnType())) {
                 RestServiceVersion serviceVersion = m.getAnnotation(RestServiceVersion.class);
                 if(serviceVersion == null || serviceVersion.value() <= version) {
+                    if(needPressEnter) {
+                        readEnterToContinue();
+                    } else {
+                        needPressEnter = true;
+                    }
                     try {
                         m.invoke(this);
                     } catch (Exception e) {
                         Debug.error(m.toString());
                         e.printStackTrace();
+                        if(throwException) {
+                            throw new RuntimeException(e);
+                        }
                     }
                 }
             }
@@ -104,5 +124,10 @@ public abstract class Sample {
     
     protected void printHttpStatus() {
         Debug.print(client);
+    }
+    
+    public Sample throwException() {
+        throwException = true;
+        return this;
     }
 }

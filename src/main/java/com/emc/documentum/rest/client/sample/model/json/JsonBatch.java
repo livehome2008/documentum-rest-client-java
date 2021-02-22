@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. EMC Corporation. All Rights Reserved.
+ * Copyright (c) 2018. Open Text Corporation. All Rights Reserved.
  */
 package com.emc.documentum.rest.client.sample.model.json;
 
@@ -149,9 +149,10 @@ public class JsonBatch implements SettableBatch {
         this.onError = onError;
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
     public List<Operation> getOperations() {
-        return new ArrayList<Operation>(operations);
+        return (List)operations;
     }
 
     public void setOperations(List<JsonBatchOperation> operations) {
@@ -162,10 +163,14 @@ public class JsonBatch implements SettableBatch {
         operations.add((JsonBatchOperation)op);
     }
     
+    @SuppressWarnings("deprecation")
     @Override
     public boolean hasAttachment() {
         for(Operation o : operations) {
             if(o.getRequest().getAttachment() != null) {
+                return true;
+            }
+            if(o.getRequest().getAttachments() != null && !o.getRequest().getAttachments().isEmpty()) {
                 return true;
             }
         }

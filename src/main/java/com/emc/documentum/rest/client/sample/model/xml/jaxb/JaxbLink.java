@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. EMC Corporation. All Rights Reserved.
+ * Copyright (c) 2018. Open Text Corporation. All Rights Reserved.
  */
 package com.emc.documentum.rest.client.sample.model.xml.jaxb;
 
@@ -18,6 +18,20 @@ public class JaxbLink implements Link {
     private String href;
     private String title;
     private String type;
+    
+    public JaxbLink() {
+    }
+    
+    public JaxbLink(String rel, String href) {
+        this.rel = rel;
+        this.href = href;
+    }
+    
+    public JaxbLink(String rel, String title, String href) {
+        this.rel = rel;
+        this.title = title;
+        this.href = href;
+    }
 
     @Override
     @XmlAttribute

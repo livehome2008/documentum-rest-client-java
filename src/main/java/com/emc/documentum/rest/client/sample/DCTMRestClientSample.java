@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. EMC Corporation. All Rights Reserved.
+ * Copyright (c) 2018. Open Text Corporation. All Rights Reserved.
  */
 package com.emc.documentum.rest.client.sample;
 
@@ -13,6 +13,7 @@ import static com.emc.documentum.rest.client.sample.cases.Sample.loadSamples;
 import static com.emc.documentum.rest.client.sample.client.DCTMRestClientBuilder.buildWithPrompt;
 import static com.emc.documentum.rest.client.sample.client.util.Debug.printNewLine;
 import static com.emc.documentum.rest.client.sample.client.util.Reader.read;
+import static com.emc.documentum.rest.client.sample.client.util.Reader.readEnterToContinue;
 
 /**
  * sample application uses DCTMRestClient
@@ -30,9 +31,9 @@ public class DCTMRestClientSample {
         RestObject productInfo = client.getProductInfo();
         StringBuilder sb = new StringBuilder();
         sb.append(productInfo.getProperties().get("product") + " " + productInfo.getProperties().get("product_version")).append(NEWLINE)
-          .append(" 0 Exit").append(NEWLINE);
+          .append("  0 Exit").append(NEWLINE);
         for(int i=0;i<samples.size();++i) {
-            sb.append(" " + (i+1) + " " + samples.get(i).name() + " samples").append(NEWLINE);
+            sb.append(" " + ((i+1)>9?(i+1):(" " + (i+1))) + " " + samples.get(i).name() + " samples").append(NEWLINE);
         }
         sb.append("Please input the number of the sample operation which need be executed:");
         while(true) {
@@ -51,7 +52,7 @@ public class DCTMRestClientSample {
             } catch(Exception e) {
                 e.printStackTrace();
             }
-            read("press \"Enter\" to continue", "");
+            readEnterToContinue();
         }
     }
 }

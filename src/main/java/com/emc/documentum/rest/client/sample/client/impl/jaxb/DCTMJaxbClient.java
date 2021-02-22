@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. EMC Corporation. All Rights Reserved.
+ * Copyright (c) 2018. Open Text Corporation. All Rights Reserved.
  */
 package com.emc.documentum.rest.client.sample.client.impl.jaxb;
 
@@ -17,29 +17,48 @@ import org.springframework.web.client.RestTemplate;
 
 import com.emc.documentum.rest.client.sample.client.DCTMRestClient;
 import com.emc.documentum.rest.client.sample.client.impl.AbstractRestTemplateClient;
+import com.emc.documentum.rest.client.sample.client.util.Collections;
 import com.emc.documentum.rest.client.sample.client.util.Headers;
+import com.emc.documentum.rest.client.sample.client.util.SupportedMediaTypes;
 import com.emc.documentum.rest.client.sample.client.util.UriHelper;
-import com.emc.documentum.rest.client.sample.model.Entry;
+import com.emc.documentum.rest.client.sample.model.AuditPolicy;
+import com.emc.documentum.rest.client.sample.model.AuditTrail;
+import com.emc.documentum.rest.client.sample.model.AvailableAuditEvents;
+import com.emc.documentum.rest.client.sample.model.Comment;
 import com.emc.documentum.rest.client.sample.model.Feed;
 import com.emc.documentum.rest.client.sample.model.FolderLink;
 import com.emc.documentum.rest.client.sample.model.HomeDocument;
+import com.emc.documentum.rest.client.sample.model.Lifecycle;
 import com.emc.documentum.rest.client.sample.model.LinkRelation;
 import com.emc.documentum.rest.client.sample.model.Linkable;
 import com.emc.documentum.rest.client.sample.model.ObjectAspects;
+import com.emc.documentum.rest.client.sample.model.ObjectLifecycle;
+import com.emc.documentum.rest.client.sample.model.Permission;
+import com.emc.documentum.rest.client.sample.model.PermissionSet;
 import com.emc.documentum.rest.client.sample.model.Preference;
 import com.emc.documentum.rest.client.sample.model.Repository;
 import com.emc.documentum.rest.client.sample.model.RestObject;
 import com.emc.documentum.rest.client.sample.model.RestType;
+import com.emc.documentum.rest.client.sample.model.SavedSearch;
+import com.emc.documentum.rest.client.sample.model.Search;
 import com.emc.documentum.rest.client.sample.model.SearchFeed;
+import com.emc.documentum.rest.client.sample.model.SearchTemplate;
 import com.emc.documentum.rest.client.sample.model.ValueAssistant;
 import com.emc.documentum.rest.client.sample.model.ValueAssistantRequest;
+import com.emc.documentum.rest.client.sample.model.VirtualDocumentNode;
 import com.emc.documentum.rest.client.sample.model.batch.Batch;
 import com.emc.documentum.rest.client.sample.model.batch.Capabilities;
 import com.emc.documentum.rest.client.sample.model.plain.PlainRestObject;
+import com.emc.documentum.rest.client.sample.model.xml.jaxb.JaxbAcl;
 import com.emc.documentum.rest.client.sample.model.xml.jaxb.JaxbAspectType;
+import com.emc.documentum.rest.client.sample.model.xml.jaxb.JaxbAuditEvent;
+import com.emc.documentum.rest.client.sample.model.xml.jaxb.JaxbAuditPolicy;
+import com.emc.documentum.rest.client.sample.model.xml.jaxb.JaxbAuditTrail;
+import com.emc.documentum.rest.client.sample.model.xml.jaxb.JaxbAvailableAuditEvents;
 import com.emc.documentum.rest.client.sample.model.xml.jaxb.JaxbBatch;
 import com.emc.documentum.rest.client.sample.model.xml.jaxb.JaxbBatchCapabilities;
 import com.emc.documentum.rest.client.sample.model.xml.jaxb.JaxbCabinet;
+import com.emc.documentum.rest.client.sample.model.xml.jaxb.JaxbComment;
 import com.emc.documentum.rest.client.sample.model.xml.jaxb.JaxbContent;
 import com.emc.documentum.rest.client.sample.model.xml.jaxb.JaxbDocument;
 import com.emc.documentum.rest.client.sample.model.xml.jaxb.JaxbFeed;
@@ -48,66 +67,109 @@ import com.emc.documentum.rest.client.sample.model.xml.jaxb.JaxbFolderLink;
 import com.emc.documentum.rest.client.sample.model.xml.jaxb.JaxbFormat;
 import com.emc.documentum.rest.client.sample.model.xml.jaxb.JaxbGroup;
 import com.emc.documentum.rest.client.sample.model.xml.jaxb.JaxbHomeDocument;
+import com.emc.documentum.rest.client.sample.model.xml.jaxb.JaxbLifecycle;
 import com.emc.documentum.rest.client.sample.model.xml.jaxb.JaxbNetworkLocation;
-import com.emc.documentum.rest.client.sample.model.xml.jaxb.JaxbObject;
 import com.emc.documentum.rest.client.sample.model.xml.jaxb.JaxbObjectAspects;
+import com.emc.documentum.rest.client.sample.model.xml.jaxb.JaxbObjectLifecycle;
+import com.emc.documentum.rest.client.sample.model.xml.jaxb.JaxbPermission;
+import com.emc.documentum.rest.client.sample.model.xml.jaxb.JaxbPermissionSet;
 import com.emc.documentum.rest.client.sample.model.xml.jaxb.JaxbPreference;
 import com.emc.documentum.rest.client.sample.model.xml.jaxb.JaxbProductInfo;
 import com.emc.documentum.rest.client.sample.model.xml.jaxb.JaxbRelation;
 import com.emc.documentum.rest.client.sample.model.xml.jaxb.JaxbRelationType;
 import com.emc.documentum.rest.client.sample.model.xml.jaxb.JaxbRepository;
+import com.emc.documentum.rest.client.sample.model.xml.jaxb.JaxbSavedSearch;
 import com.emc.documentum.rest.client.sample.model.xml.jaxb.JaxbSearchFeed;
+import com.emc.documentum.rest.client.sample.model.xml.jaxb.JaxbSearchTemplate;
+import com.emc.documentum.rest.client.sample.model.xml.jaxb.JaxbSubscribers;
 import com.emc.documentum.rest.client.sample.model.xml.jaxb.JaxbSysObject;
 import com.emc.documentum.rest.client.sample.model.xml.jaxb.JaxbType;
 import com.emc.documentum.rest.client.sample.model.xml.jaxb.JaxbUser;
 import com.emc.documentum.rest.client.sample.model.xml.jaxb.JaxbValueAssistance;
 import com.emc.documentum.rest.client.sample.model.xml.jaxb.JaxbValueAssistantRequest;
 
+import static com.emc.documentum.rest.client.sample.client.util.Headers.ACCEPT_ATOM_HEADERS;
+import static com.emc.documentum.rest.client.sample.client.util.SupportedMediaTypes.APPLICATION_VND_DCTM_XML_VALUE;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.ABOUT;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.ACLS;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.ASPECT_TYPES;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.ASSIS_VALUES;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.ASSOCIATIONS;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.AUDIT_POLICIES;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.AVAILABLE_AUDIT_EVENTS;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.BATCH_CAPABILITIES;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.CABINETS;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.CANCEL_CHECKOUT;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.CANCEL_DEMOTION;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.CANCEL_PROMOTION;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.CANCEL_RESUMPTION;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.CANCEL_SUSPENSION;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.CHECKIN_BRANCH_VERSION;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.CHECKIN_NEXT_MAJOR;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.CHECKIN_NEXT_MINOR;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.CHECKOUT;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.COMMENTS;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.CONTENTS;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.CURRENT_USER_PREFERENCES;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.DELETE;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.DEMATERIALIZE;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.DEMOTION;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.DOCUMENTS;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.EDIT;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.FOLDERS;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.FORMATS;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.GROUPS;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.LIFECYCLES;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.MATERIALIZE;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.NETWORK_LOCATIONS;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.OBJECTS;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.OBJECT_ASPECTS;
-import static com.emc.documentum.rest.client.sample.model.LinkRelation.PAGING_FIRST;
-import static com.emc.documentum.rest.client.sample.model.LinkRelation.PAGING_LAST;
-import static com.emc.documentum.rest.client.sample.model.LinkRelation.PAGING_NEXT;
-import static com.emc.documentum.rest.client.sample.model.LinkRelation.PAGING_PREV;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.OBJECT_LIFECYCLE;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.PRIMARY_CONTENT;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.PROMOTION;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.RECENT_TRAILS;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.REGISTERED_AUDIT_EVENTS;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.RELATIONS;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.RELATION_TYPES;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.REPLIES;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.REPOSITORIES;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.RESUMPTION;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.SAVED_SEARCHES;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.SAVED_SEARCH_SAVED_RESULTS;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.SEARCH;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.SEARCH_EXECUTION;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.SEARCH_TEMPLATES;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.SELF;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.SHARED_PARENT;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.SUBSCRIBE;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.SUBSCRIPTIONS;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.SUSPENSION;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.TYPES;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.UNSUBSCRIBE;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.USERS;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.VERSIONS;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.VIRTUAL_DOCUMENT_NODES;
+import static org.springframework.http.HttpMethod.PUT;
+import static org.springframework.http.MediaType.APPLICATION_ATOM_XML_VALUE;
+
 /**
  * the DCTMRestClient implementation by JAXB xml support
  */
 @NotThreadSafe
-public class DCTMJaxbClient extends AbstractRestTemplateClient implements DCTMRestClient {
+public class DCTMJaxbClient extends AbstractRestTemplateClient implements DCTMRestClient, Cloneable {
     public DCTMJaxbClient(String contextRoot, String repositoryName,
             String username, String password, boolean useFormatExtension) {
         super(contextRoot, repositoryName, username, password, useFormatExtension);
+    }
+
+    public DCTMJaxbClient(String contextRoot, String repositoryName,
+            String username, String password, boolean useFormatExtension, boolean ignoreSslWarning) {
+        super(contextRoot, repositoryName, username, password, useFormatExtension, ignoreSslWarning);
+    }
+    
+    @Override
+    public DCTMJaxbClient clone() {
+        return clone(new DCTMJaxbClient(contextRoot, repositoryName, username, password, useFormatExtension, ignoreSslWarning));
     }
     
     @Override
@@ -129,32 +191,19 @@ public class DCTMJaxbClient extends AbstractRestTemplateClient implements DCTMRe
     @Override
     public Feed<Repository> getRepositories() {
         if(repositories == null) {
-            String repositoriesUri = getHomeDocument().getHref(REPOSITORIES);
-            repositories = get(repositoriesUri, true, JaxbFeed.class);
+            repositories = feed(getHomeDocument(), REPOSITORIES);
         }
         return repositories;
     }
     
     @Override
     public Repository getRepository() {
-        if(repository == null) {
-            boolean resetEnableStreaming = enableStreaming;
-            Feed<Repository> repositories = getRepositories();
-            for(Entry<Repository> e : repositories.getEntries()) {
-                if(repositoryName.equals(e.getTitle())) {
-                    repository = get(e.getContentSrc(), false, JaxbRepository.class);
-                }
-            }
-            if(resetEnableStreaming) {
-                enableStreaming = resetEnableStreaming;
-            }
-        }
-        return repository;
+        return getRepository(JaxbRepository.class);
     }
     
     @Override
     public Feed<RestObject> dql(String dql, String... params) {
-        return get(getRepository().getHref(SELF), true, JaxbFeed.class, UriHelper.append(params, "dql", dql));
+        return feed(SELF, UriHelper.append(params, "dql", dql));
     }
     
     @Override
@@ -163,46 +212,38 @@ public class DCTMJaxbClient extends AbstractRestTemplateClient implements DCTMRe
     }
     
     @Override
+    public SearchFeed<RestObject> search(Search search, String... params) {
+        return post(getRepository().getHref(SEARCH), search, new Headers().accept(MediaType.APPLICATION_ATOM_XML_VALUE).contentType(SupportedMediaTypes.APPLICATION_VND_DCTM_XML_VALUE).toHttpHeaders(), JaxbSearchFeed.class, params);
+    }
+
+    @Override
+    public RestObject createCabinet(RestObject cabinetToCreate) {
+        return post(getRepository().getHref(CABINETS), new JaxbCabinet(cabinetToCreate), JaxbCabinet.class);
+    }
+
+    @Override
     public Feed<RestObject> getCabinets(String... params) {
-        Repository repository = getRepository();
-        String cabinetsUri = repository.getHref(CABINETS);
-        return get(cabinetsUri, true, JaxbFeed.class, params);
+        return feed(CABINETS, params);
     }
     
     @Override
     public RestObject getCabinet(String cabinet, String... params) {
-        RestObject obj = null; 
-        Feed feed = getCabinets("filter", "starts-with(object_name,'" + cabinet + "')");
-        List<Entry> entries = feed.getEntries();
-        if(entries != null) {
-            for(Entry e : entries) {
-                if(cabinet.equals(e.getTitle())) {
-                    obj = get(e.getContentSrc(), false, JaxbCabinet.class);
-                    break;
-                }
-            }
-        }
-        return obj;
-    }
-    
-    @Override
-    public RestObject get(RestObject object, String... params) {
-        return get(object.getHref(SELF), false, object.getClass(), params);
+        return getCabinet(cabinet, JaxbCabinet.class, params);
     }
     
     @Override
     public Feed<RestObject> getFolders(Linkable parent, String... params) {
-        return get(parent.getHref(FOLDERS), true, JaxbFeed.class, params);
+        return feed(parent, FOLDERS, params);
     }
     
     @Override
     public Feed<RestObject> getObjects(Linkable parent, String... params) {
-        return get(parent.getHref(OBJECTS), true, JaxbFeed.class, params);
+        return feed(parent, OBJECTS, params);
     }
     
     @Override
     public Feed<RestObject> getDocuments(Linkable parent, String... params) {
-        return get(parent.getHref(DOCUMENTS), true, JaxbFeed.class, params);
+        return feed(parent, DOCUMENTS, params);
     }
     
     @Override
@@ -219,10 +260,15 @@ public class DCTMJaxbClient extends AbstractRestTemplateClient implements DCTMRe
     public RestObject createObject(Linkable parent, LinkRelation rel, RestObject objectToCreate, Object content, String contentMediaType, String... params) {
         return post(parent.getHref(rel), new JaxbSysObject(objectToCreate), content, contentMediaType, JaxbSysObject.class, params);
     }
-
+    
+    @Override
+    public RestObject createObject(Linkable parent, LinkRelation rel, RestObject objectToCreate, List<Object> contents, List<String> contentMediaTypes, String... params) {
+        return post(parent.getHref(rel), new JaxbSysObject(objectToCreate), contents, contentMediaTypes, JaxbSysObject.class, params);
+    }
+    
     @Override
     public RestObject getObject(String objectUri, String... params) {
-        return get(objectUri, false, JaxbObject.class, params);
+        return get(objectUri, false, JaxbSysObject.class, params);
     }
     
     @Override
@@ -230,6 +276,11 @@ public class DCTMJaxbClient extends AbstractRestTemplateClient implements DCTMRe
         return post(parent.getHref(DOCUMENTS), new JaxbDocument(objectToCreate), content, contentMediaType, JaxbDocument.class, params);
     }
     
+    @Override
+    public RestObject createDocument(Linkable parent, RestObject objectToCreate, List<Object> contents, List<String> contentMediaTypes, String... params) {
+        return post(parent.getHref(DOCUMENTS), new JaxbDocument(objectToCreate), contents, contentMediaTypes, JaxbDocument.class, params);
+    }
+
     @Override
     public RestObject getDocument(String documentUri, String... params) {
         return get(documentUri, false, JaxbDocument.class, params);
@@ -257,7 +308,7 @@ public class DCTMJaxbClient extends AbstractRestTemplateClient implements DCTMRe
     
     @Override
     public Feed<RestObject> getContents(RestObject object, String... params) {
-        return get(object.getHref(CONTENTS), true, JaxbFeed.class, params);
+        return feed(object, CONTENTS, params);
     }
     
     @Override
@@ -271,23 +322,55 @@ public class DCTMJaxbClient extends AbstractRestTemplateClient implements DCTMRe
     }
     
     @Override
-    public RestObject checkinNextMajor(RestObject oldObject, RestObject newObject, Object content, String contentMediaType, String... params) {
-        return checkin(oldObject, CHECKIN_NEXT_MAJOR, newObject, content, contentMediaType, params);
+    public RestObject checkinNextMajor(RestObject oldObject, RestObject newObject, String... params) {
+        return post(oldObject.getHref(CHECKIN_NEXT_MAJOR), new JaxbSysObject(newObject), JaxbSysObject.class, params);
     }
     
     @Override
+    public RestObject checkinNextMajor(RestObject oldObject, RestObject newObject, Object content, String contentMediaType, String... params) {
+        return post(oldObject.getHref(CHECKIN_NEXT_MAJOR), newObject==null?null:new JaxbSysObject(newObject), content, contentMediaType, JaxbSysObject.class, params);
+    }
+
+    @Override
+    public RestObject checkinNextMajor(RestObject oldObject, RestObject newObject, List<Object> contents,
+            List<String> contentMediaTypes, String... params) {
+        return post(oldObject.getHref(CHECKIN_NEXT_MAJOR), newObject==null?null:new JaxbSysObject(newObject), contents, contentMediaTypes, JaxbSysObject.class, params);
+    }
+
+    @Override
+    public RestObject checkinNextMinor(RestObject oldObject, RestObject newObject, String... params) {
+        return post(oldObject.getHref(CHECKIN_NEXT_MINOR), new JaxbSysObject(newObject), JaxbSysObject.class, params);
+    }
+
+    @Override
     public RestObject checkinNextMinor(RestObject oldObject, RestObject newObject, Object content, String contentMediaType, String... params) {
-        return checkin(oldObject, CHECKIN_NEXT_MINOR, newObject, content, contentMediaType, params);
+        return post(oldObject.getHref(CHECKIN_NEXT_MINOR), newObject==null?null:new JaxbSysObject(newObject), content, contentMediaType, JaxbSysObject.class, params);
+    }
+    
+    @Override
+    public RestObject checkinNextMinor(RestObject oldObject, RestObject newObject, List<Object> contents,
+            List<String> contentMediaTypes, String... params) {
+        return post(oldObject.getHref(CHECKIN_NEXT_MINOR), newObject==null?null:new JaxbSysObject(newObject), contents, contentMediaTypes, JaxbSysObject.class, params);
+    }
+
+    @Override
+    public RestObject checkinBranch(RestObject oldObject, RestObject newObject, String... params) {
+        return post(oldObject.getHref(CHECKIN_BRANCH_VERSION), new JaxbSysObject(newObject), JaxbSysObject.class, params);
     }
     
     @Override
     public RestObject checkinBranch(RestObject oldObject, RestObject newObject, Object content, String contentMediaType, String... params) {
-        return checkin(oldObject, CHECKIN_BRANCH_VERSION, newObject, content, contentMediaType, params);
+        return post(oldObject.getHref(CHECKIN_BRANCH_VERSION), newObject==null?null:new JaxbSysObject(newObject), content, contentMediaType, JaxbSysObject.class, params);
+    }
+
+    @Override
+    public RestObject checkinBranch(RestObject oldObject, RestObject newObject, List<Object> contents, List<String> contentMediaTypes, String... params) {
+        return post(oldObject.getHref(CHECKIN_BRANCH_VERSION), newObject==null?null:new JaxbSysObject(newObject), contents, contentMediaTypes, JaxbSysObject.class, params);
     }
     
     @Override
     public Feed<RestObject> getVersions(RestObject object, String... params) {
-        return get(object.getHref(VERSIONS), true, JaxbFeed.class, params);
+        return feed(object, VERSIONS, params);
     }
     
     @Override
@@ -306,7 +389,7 @@ public class DCTMJaxbClient extends AbstractRestTemplateClient implements DCTMRe
             RestObject newRestObject = newRestObject(oldObject, new PlainRestObject(newParent.getHref(SELF)));
             return post(oldObject.getHref(SHARED_PARENT), newRestObject, newRestObject.getClass());
         } catch (Exception e) {
-            throw new IllegalArgumentException(oldObject.getClass().getName());
+            throw new IllegalArgumentException(getModelClass(oldObject).getName());
         }
     }
     
@@ -317,16 +400,12 @@ public class DCTMJaxbClient extends AbstractRestTemplateClient implements DCTMRe
     
     @Override
     public Feed<RestType> getTypes(String... params) {
-        Repository repository = getRepository();
-        String typesUri = repository.getHref(TYPES);
-        return get(typesUri, true, JaxbFeed.class, params);
+        return feed(TYPES, params);
     }
     
     @Override
     public Feed<RestObject> getAspectTypes(String... params) {
-        Repository repository = getRepository();
-        String aspectTypesUri = repository.getHref(ASPECT_TYPES);
-        return get(aspectTypesUri, true, JaxbFeed.class, params);
+        return feed(ASPECT_TYPES, params);
     }
     
     @Override
@@ -350,18 +429,38 @@ public class DCTMJaxbClient extends AbstractRestTemplateClient implements DCTMRe
     }
     
     @Override
+    public ObjectAspects getObjectAspects(RestObject object, String... params) {
+        return get(object.getHref(OBJECT_ASPECTS), JaxbObjectAspects.class, params);        
+    }
+    
+    @Override
     public Feed<RestObject> getUsers(String... params) {
         return getUsers(getRepository(), params);
     }
     
     @Override
     public Feed<RestObject> getUsers(Linkable parent, String... params) {
-        return get(parent.getHref(USERS), true, JaxbFeed.class, params);
+        return feed(parent, USERS, params);
     }
 
     @Override
     public Feed<RestObject> getGroups(String... params) {
-        return get(getRepository().getHref(GROUPS), true, JaxbFeed.class, params);
+        return getGroups(getRepository(), params);
+    }
+    
+    @Override
+    public Feed<RestObject> getGroups(Linkable parent, String... params) {
+        return feed(parent, GROUPS, params);
+    }
+
+    @Override
+    public RestObject getCurrentUser(String... params) {
+        return get(getRepository().getHref(LinkRelation.CURRENT_USER), false, JaxbUser.class, params);
+    }
+
+    @Override
+    public RestObject getDefaultFolder(String... params) {
+        return get(getCurrentUser().getHref(LinkRelation.DEFAULT_FOLDER), false, JaxbFolder.class, params);
     }
 
     @Override
@@ -386,15 +485,17 @@ public class DCTMJaxbClient extends AbstractRestTemplateClient implements DCTMRe
     
     @Override
     public void addUserToGroup(RestObject group, RestObject user) {
-        JaxbUser groupUser = new JaxbUser();
-        groupUser.setHref(user.getHref(SELF));
-        post(group.getHref(USERS), groupUser, null);
+        post(group.getHref(USERS), new JaxbUser(user.getHref(SELF)), null);
+    }
+    
+    @Override
+    public void addGroupToGroup(RestObject group, RestObject subGroup) {
+        post(group.getHref(GROUPS), new JaxbGroup(subGroup.getHref(SELF)), null);
     }
 
     @Override
     public Feed<RestObject> getRelationTypes(String... params) {
-        Feed<? extends RestObject> feed = get(getRepository().getHref(RELATION_TYPES), true, JaxbFeed.class, params);
-        return (Feed<RestObject>)feed;
+        return feed(RELATION_TYPES, params);
     }
     
     @Override
@@ -404,8 +505,7 @@ public class DCTMJaxbClient extends AbstractRestTemplateClient implements DCTMRe
 
     @Override
     public Feed<RestObject> getRelations(String... params) {
-        Feed<? extends RestObject> feed = get(getRepository().getHref(RELATION_TYPES), true, JaxbFeed.class, params);
-        return (Feed<RestObject>)feed;
+        return feed(RELATION_TYPES, params);
     }
     
     @Override
@@ -420,8 +520,7 @@ public class DCTMJaxbClient extends AbstractRestTemplateClient implements DCTMRe
     
     @Override
     public Feed<RestObject> getFormats(String... params) {
-        Feed<? extends RestObject> feed = get(getRepository().getHref(FORMATS), true, JaxbFeed.class, params);
-        return (Feed<RestObject>)feed;
+        return feed(FORMATS, params);
     }
     
     @Override
@@ -431,8 +530,7 @@ public class DCTMJaxbClient extends AbstractRestTemplateClient implements DCTMRe
     
     @Override
     public Feed<RestObject> getNetworkLocations(String... params) {
-        Feed<? extends RestObject> feed = get(getRepository().getHref(NETWORK_LOCATIONS), true, JaxbFeed.class, params);
-        return (Feed<RestObject>)feed;
+        return feed(NETWORK_LOCATIONS, params);
     }
     
     @Override
@@ -442,8 +540,7 @@ public class DCTMJaxbClient extends AbstractRestTemplateClient implements DCTMRe
     
     @Override
     public Feed<FolderLink> getFolderLinks(Linkable object, LinkRelation rel, String... params) {
-        Feed<? extends FolderLink> feed = get(object.getHref(rel), true, JaxbFeed.class, params);
-        return (Feed<FolderLink>)feed;
+        return feed(object, rel, params);
     }
     
     @Override
@@ -462,6 +559,26 @@ public class DCTMJaxbClient extends AbstractRestTemplateClient implements DCTMRe
     }
     
     @Override
+    public Feed<RestObject> getAcls(String... params) {
+        return feed(ACLS, params);
+    }
+    
+    @Override
+    public Feed<RestObject> getAclAssociations(Linkable acl, String... params) {
+        return feed(acl, ASSOCIATIONS, params);
+    }
+    
+    @Override
+    public RestObject getAcl(String uri, String... params) {
+        return get(uri, false, JaxbAcl.class, params);
+    }
+    
+    @Override
+    public RestObject createAcl(RestObject object) {
+        return post(getRepository().getHref(ACLS), new JaxbAcl(object), JaxbAcl.class);
+    }
+    
+    @Override
     public Capabilities getBatchCapabilities() {
         return get(getRepository().getHref(BATCH_CAPABILITIES), false, JaxbBatchCapabilities.class);
     }
@@ -473,8 +590,7 @@ public class DCTMJaxbClient extends AbstractRestTemplateClient implements DCTMRe
     
     @Override
     public Feed<Preference> getPreferences(String... params) {
-        Feed<? extends Preference> feed = get(getRepository().getHref(CURRENT_USER_PREFERENCES), true, JaxbFeed.class, params);
-        return (Feed<Preference>)feed;
+        return feed(CURRENT_USER_PREFERENCES, params);
     }
 
     @Override
@@ -493,43 +609,103 @@ public class DCTMJaxbClient extends AbstractRestTemplateClient implements DCTMRe
     }
 
     @Override
-    public <T extends Linkable> Feed<T> nextPage(Feed<T> feed) {
-        return page(feed.getHref(PAGING_NEXT));
+    public Permission getPermission(Linkable linkable, String... params) {
+        return get(linkable.getHref(LinkRelation.PERMISSIONS), false, JaxbPermission.class, params);
     }
     
     @Override
-    public <T extends Linkable> Feed<T> previousPage(Feed<T> feed) {
-        return page(feed.getHref(PAGING_PREV));
+    public PermissionSet getPermissionSet(Linkable linkable, String... params) {
+        return get(linkable.getHref(LinkRelation.PERMISSION_SET), false, JaxbPermissionSet.class, params);
+    }
+    
+    @Override
+    public Feed<Comment> getComments(Linkable parent, String... params) {
+        return feed(parent, COMMENTS, params);
     }
 
     @Override
-    public <T extends Linkable> Feed<T> firstPage(Feed<T> feed) {
-        return page(feed.getHref(PAGING_FIRST));
+    public Comment createComment(Linkable parent, Comment comment) {
+        return post(parent.getHref(COMMENTS), new JaxbComment(comment), JaxbComment.class);
     }
 
     @Override
-    public <T extends Linkable> Feed<T> lastPage(Feed<T> feed) {
-        return page(feed.getHref(PAGING_LAST));
+    public Comment getComment(String commentUri, String... params) {
+        return get(commentUri, false, JaxbComment.class, params);
+    }
+
+    @Override
+    public Feed<Comment> getReplies(Linkable parent, String... params) {
+        return feed(parent, REPLIES, params);
+    }
+
+    @Override
+    public Comment createReply(Linkable parent, Comment comment) {
+        return post(parent.getHref(REPLIES), new JaxbComment(comment), JaxbComment.class);
+    }
+
+    @Override
+    public Feed<VirtualDocumentNode> getVirtualDocumentNodes(Linkable linkable, String... params) {
+        return feed(linkable, VIRTUAL_DOCUMENT_NODES, params);
+    }
+
+    @Override
+    public Feed<SearchTemplate> getSearchTemplates(String... params) {
+        return feed(SEARCH_TEMPLATES, params);
+    }
+
+    @Override
+    public SearchTemplate getSearchTemplate(String uri, String... params) {
+        return get(uri, false, JaxbSearchTemplate.class, params);
+    }
+
+    @Override
+    public SearchTemplate createSearchTemplate(SearchTemplate template) {
+        return post(getRepository().getHref(SEARCH_TEMPLATES), new JaxbSearchTemplate(template), JaxbSearchTemplate.class);
     }
     
-    private Feed page(String uri) {
-        Feed feed = null;
-        if(uri != null) {
-            feed = get(uri, true, JaxbFeed.class);
-        }
-        return feed;
+    @Override
+    public SearchFeed<RestObject> executeSearchTemplate(SearchTemplate toBeExecuted, String... params) {
+        return post(toBeExecuted.getHref(SEARCH_EXECUTION), toBeExecuted, new Headers().accept(MediaType.APPLICATION_ATOM_XML_VALUE).contentType(SupportedMediaTypes.APPLICATION_VND_DCTM_XML_VALUE).toHttpHeaders(), JaxbSearchFeed.class, params);
     }
     
-    private RestObject checkin(RestObject oldObject, LinkRelation rel, RestObject newObject, Object content, String contentMediaType, String... params) {
-        RestObject resp = null;
-        if(newObject != null && content != null) {
-            resp = post(oldObject.getHref(rel), new JaxbSysObject(newObject), content, contentMediaType, JaxbSysObject.class, params);
-        } else if(newObject == null) {
-            resp = post(oldObject.getHref(rel), content, contentMediaType==null?MediaType.APPLICATION_OCTET_STREAM_VALUE:contentMediaType, oldObject.getClass(), params);
-        } else if(content == null) {
-            resp = post(oldObject.getHref(rel), new JaxbSysObject(newObject), JaxbSysObject.class, params);
-        }
-        return resp;
+    @Override
+    public SearchFeed<RestObject> executeSavedSearch(SavedSearch toBeExecuted, String... params) {
+        return get(toBeExecuted.getHref(SEARCH_EXECUTION), true, JaxbSearchFeed.class, params);
+    }
+
+    @Override
+    public Feed<SavedSearch> getSavedSearches(String... params) {
+        return feed(SAVED_SEARCHES, params);
+    }
+
+    @Override
+    public SavedSearch getSavedSearch(String uri, String... params) {
+        return get(uri, false, JaxbSavedSearch.class, params);
+    }
+
+    @Override
+    public SavedSearch createSavedSearch(SavedSearch savedSearch) {
+        return post(getRepository().getHref(SAVED_SEARCHES), new JaxbSavedSearch(savedSearch), JaxbSavedSearch.class);
+    }
+    
+    @Override
+    public SavedSearch updateSavedSearch(SavedSearch oldSavedSearch, SavedSearch newSavedSearch) {
+        return post(oldSavedSearch.self(), new JaxbSavedSearch(newSavedSearch), JaxbSavedSearch.class);
+    }
+
+    @Override
+    public SearchFeed<RestObject> enableSavedSearchResult(SavedSearch toBeExecuted, String... params) {
+        return sendRequest(toBeExecuted.getHref(SAVED_SEARCH_SAVED_RESULTS), PUT, ACCEPT_ATOM_HEADERS, null, JaxbSearchFeed.class, params);
+    }
+
+    @Override
+    public void disableSavedSearchResult(SavedSearch toBeExecuted) {
+        delete(toBeExecuted.getHref(SAVED_SEARCH_SAVED_RESULTS));
+    }
+
+    @Override
+    public SearchFeed<RestObject> getSavedSearchResult(SavedSearch toBeExecuted, String... params) {
+        return get(toBeExecuted.getHref(SAVED_SEARCH_SAVED_RESULTS), true, JaxbSearchFeed.class, params);
     }
     
     @Override
@@ -543,11 +719,23 @@ public class DCTMJaxbClient extends AbstractRestTemplateClient implements DCTMRe
             }
         }
     }
+
+    @SuppressWarnings("rawtypes")
+    private Feed feed(Linkable parent, LinkRelation rel, String... params) {
+        return feed(parent, rel, JaxbFeed.class, params);
+    }
     
+    @SuppressWarnings("rawtypes")
+    private Feed feed(LinkRelation rel, String... params) {
+        return feed(rel, JaxbFeed.class, params);
+    }
+
     @Override
     public void serialize(Object object, OutputStream os) {
         try {
             DCTMJaxbContext.marshal(os, object);
+        } catch (RuntimeException re) {
+            throw (RuntimeException)re;
         } catch (Exception e) {
             throw new IllegalArgumentException(e);
         }
@@ -556,5 +744,162 @@ public class DCTMJaxbClient extends AbstractRestTemplateClient implements DCTMRe
     @Override
     public ClientType getClientType() {
         return ClientType.XML;
+    }
+
+    @Override
+    public Feed<Lifecycle> getLifecycles(String... params) {
+        return feed(LIFECYCLES, params);
+    }
+    
+    @Override
+    public Lifecycle getLifecycle(String uri, String... params) {
+        return get(uri, false, JaxbLifecycle.class, params);
+    }
+
+    @Override
+    public ObjectLifecycle attach(RestObject object, ObjectLifecycle objectLifecycle) {
+        return put(object.getHref(OBJECT_LIFECYCLE), objectLifecycle==null?null:new JaxbObjectLifecycle(objectLifecycle), JaxbObjectLifecycle.class);
+    }
+
+    @Override
+    public void detach(ObjectLifecycle objectLifecycle) {
+        delete(objectLifecycle.self());
+    }
+    
+    @Override
+    public ObjectLifecycle getObjectLifecycle(RestObject object, String... params) {
+        return get(object.getHref(OBJECT_LIFECYCLE), JaxbObjectLifecycle.class, params);
+    }
+
+    @Override
+    public ObjectLifecycle promote(ObjectLifecycle objectLifecycle, String... params) {
+        return put(objectLifecycle.getHref(PROMOTION), JaxbObjectLifecycle.class, params);
+    }
+
+    @Override
+    public ObjectLifecycle demote(ObjectLifecycle objectLifecycle, String... params) {
+        return put(objectLifecycle.getHref(DEMOTION), JaxbObjectLifecycle.class, params);
+    }
+
+    @Override
+    public ObjectLifecycle suspend(ObjectLifecycle objectLifecycle, String... params) {
+        return put(objectLifecycle.getHref(SUSPENSION), JaxbObjectLifecycle.class, params);
+    }
+
+    @Override
+    public ObjectLifecycle resume(ObjectLifecycle objectLifecycle, String... params) {
+        return put(objectLifecycle.getHref(RESUMPTION), JaxbObjectLifecycle.class, params);
+    }
+
+    @Override
+    public void cancel(ObjectLifecycle objectLifecycle) {
+        if(objectLifecycle.hasHref(CANCEL_PROMOTION)) {
+            delete(objectLifecycle.getHref(CANCEL_PROMOTION));
+        }
+        if(objectLifecycle.hasHref(CANCEL_DEMOTION)) {
+            delete(objectLifecycle.getHref(CANCEL_DEMOTION));
+        }
+        if(objectLifecycle.hasHref(CANCEL_SUSPENSION)) {
+            delete(objectLifecycle.getHref(CANCEL_SUSPENSION));
+        }
+        if(objectLifecycle.hasHref(CANCEL_RESUMPTION)) {
+            delete(objectLifecycle.getHref(CANCEL_RESUMPTION));
+        }
+    }
+
+    @Override
+    public RestObject subscribe(RestObject object, String... subscribers) {
+        if(!object.hasHref(SUBSCRIBE)) {
+            object = get(object, "check-subscription", "true");
+        }
+        if(object.hasHref(SUBSCRIBE)) {
+            return Collections.isEmpty(subscribers) ?
+                    put(object.getHref(SUBSCRIBE), object.getClass()):
+                    put(object.getHref(SUBSCRIBE),  new JaxbSubscribers(subscribers), object.getClass());
+        } else if(object.hasHref(UNSUBSCRIBE)) {
+            throw new IllegalArgumentException("the object is already subscribed");
+        } else {
+            throw new IllegalArgumentException("the object is not subscribable");
+        }
+    }
+
+    @Override
+    public void unsubscribe(RestObject object) {
+        if(!object.hasHref(UNSUBSCRIBE)) {
+            object = get(object, "check-subscription", "true");
+        }
+        if(object.hasHref(UNSUBSCRIBE)) {
+            delete(object.getHref(UNSUBSCRIBE));
+        } else if(object.hasHref(SUBSCRIBE)) {
+            throw new IllegalArgumentException("the object is not subscribed");
+        } else {
+            throw new IllegalArgumentException("the object is not unsubscribable");
+        }
+    }
+
+    @Override
+    public Feed<RestObject> getSubscriptions(String... params) {
+        return feed(SUBSCRIPTIONS, params);
+    }
+
+    @Override
+    public Feed<AuditPolicy> getAuditPolicies(String... params) {
+        return feed(AUDIT_POLICIES, params);
+    }
+
+    @Override
+    public AuditPolicy createAuditPolicy(AuditPolicy auditPolicy) {
+        return post(getRepository().getHref(AUDIT_POLICIES), new JaxbAuditPolicy(auditPolicy), JaxbAuditPolicy.class);
+    }
+
+    @Override
+    public AuditPolicy getAuditPolicy(String uri, String... params) {
+        return get(uri, JaxbAuditPolicy.class, params);
+    }
+
+    @Override
+    public AuditPolicy updateAuditPolicy(AuditPolicy oldPolicy, AuditPolicy newPolicy) {
+        return post(oldPolicy.getHref(EDIT), new JaxbAuditPolicy(newPolicy), JaxbAuditPolicy.class);
+    }
+
+    @Override
+    public void deleteAuditPolicy(AuditPolicy auditPolicy) {
+        delete(auditPolicy);
+    }
+
+    @Override
+    public Feed<RestObject> getRecentAuditTrails(String... params) {
+        return feed(getCurrentUser(), RECENT_TRAILS, params);
+    }
+
+    @Override
+    public AuditTrail getAuditTrail(String auditTrailUri, String... params) {
+        return get(auditTrailUri, JaxbAuditTrail.class, params);
+    }
+
+    @Override
+    public AvailableAuditEvents getAvailableAuditEvents(String... params) {
+        return getRepository().hasHref(AVAILABLE_AUDIT_EVENTS)?
+            get(getRepository().getHref(AVAILABLE_AUDIT_EVENTS), new Headers().accept(APPLICATION_VND_DCTM_XML_VALUE+","+APPLICATION_ATOM_XML_VALUE).toHttpHeaders(), JaxbAvailableAuditEvents.class, params):null;
+    }
+
+    @Override
+    public Feed<RestObject> getRegisteredAuditEvents(String... params) {
+        return feed(getRepository(), REGISTERED_AUDIT_EVENTS, params);
+    }
+
+    @Override
+    public RestObject registerAuditEvent(RestObject auditEvent, String... params) {
+        return post(getRepository().getHref(REGISTERED_AUDIT_EVENTS), new JaxbAuditEvent(auditEvent), JaxbAuditEvent.class, params);
+    }
+
+    @Override
+    public RestObject getRegisteredAuditEvent(String uri, String... params) {
+        return get(uri, JaxbAuditEvent.class, params);
+    }
+
+    @Override
+    public void unregisterAuditEvent(RestObject auditEvent) {
+        delete(auditEvent);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. EMC Corporation. All Rights Reserved.
+ * Copyright (c) 2018. Open Text Corporation. All Rights Reserved.
  */
 package com.emc.documentum.rest.client.sample.model.xml.jaxb;
 
@@ -10,9 +10,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.emc.documentum.rest.client.sample.client.util.Equals;
 import com.emc.documentum.rest.client.sample.model.FolderLink;
-import com.emc.documentum.rest.client.sample.model.xml.XMLNamespace;
 
-@XmlRootElement(name="folder-link", namespace=XMLNamespace.DM_NAMESPACE)
+@XmlRootElement(name="folder-link")
 public class JaxbFolderLink extends JaxbDmLinkableBase implements FolderLink {
     private String href;
     private String parentId;

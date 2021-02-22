@@ -1,4 +1,7 @@
-package com.emc.documentum.rest.client.sample.model.batch;
+/*
+ * Copyright (c) 2018. Open Text Corporation. All Rights Reserved.
+ */
+package com.emc.documentum.rest.client.sample.model.builder;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -20,7 +23,15 @@ import com.emc.documentum.rest.client.sample.client.annotation.NotBatchable;
 import com.emc.documentum.rest.client.sample.client.impl.AbstractRestTemplateClient;
 import com.emc.documentum.rest.client.sample.client.impl.AbstractRestTemplateClient.RequestProcessor;
 import com.emc.documentum.rest.client.sample.client.util.SupportedMediaTypes;
+import com.emc.documentum.rest.client.sample.model.batch.Attachment;
+import com.emc.documentum.rest.client.sample.model.batch.Batch;
 import com.emc.documentum.rest.client.sample.model.batch.Batch.OnError;
+import com.emc.documentum.rest.client.sample.model.batch.SettableAttachment;
+import com.emc.documentum.rest.client.sample.model.batch.SettableBatch;
+import com.emc.documentum.rest.client.sample.model.batch.SettableHeader;
+import com.emc.documentum.rest.client.sample.model.batch.SettableInclude;
+import com.emc.documentum.rest.client.sample.model.batch.SettableOperation;
+import com.emc.documentum.rest.client.sample.model.batch.SettableRequest;
 import com.emc.documentum.rest.client.sample.model.json.JsonBatchBuilder;
 import com.emc.documentum.rest.client.sample.model.xml.jaxb.JaxbBatchBuilder;
 
@@ -31,6 +42,9 @@ public abstract class BatchBuilder {
     private int operationId = 1;
     
     public static BatchBuilder builder(DCTMRestClient client) {
+        if(!(client instanceof AbstractRestTemplateClient)) {
+            throw new UnsupportedOperationException(client.getClass().getName());
+        }
         client.getRepository();
         if(((AbstractRestTemplateClient)client).isXml()) {
             return new JaxbBatchBuilder(client);
@@ -108,22 +122,27 @@ public abstract class BatchBuilder {
             }
             if(requestEntity.getBody() != null) {
                 if(requestEntity.getBody() instanceof Map) {
-                    HttpEntity<?> metadataEntity = ((List<HttpEntity<?>>)((Map<?,?>)requestEntity.getBody()).get("metadata")).get(0);
-                    HttpEntity<?> binaryEntity = ((List<HttpEntity<?>>)((Map<?,?>)requestEntity.getBody()).get("binary")).get(0);
-                    request.setEntity(toEntity(metadataEntity.getBody()));
-                    SettableInclude include = createInclude();
-                    include.setHref(UUID.randomUUID().toString());
-                    SettableAttachment attachment = createAttachment();
-                    attachment.setInclude(include);
-                    attachment.setContentStream((InputStream)binaryEntity.getBody());
-                    if(binaryEntity.getHeaders().getContentType() != null) {
-                        attachment.setContentType(binaryEntity.getHeaders().getContentType().toString());
+                    if(((Map<?,?>)requestEntity.getBody()).containsKey("metadata")) {
+                        HttpEntity<?> metadataEntity = ((List<HttpEntity<?>>)((Map<?,?>)requestEntity.getBody()).get("metadata")).get(0);
+                        request.setEntity(toEntity(metadataEntity.getBody()));
+                        SettableHeader header = createHeader();
+                        header.setName(HttpHeaders.CONTENT_TYPE);
+                        header.setValue(client.isXml()?SupportedMediaTypes.APPLICATION_VND_DCTM_XML_VALUE:SupportedMediaTypes.APPLICATION_VND_DCTM_JSON_VALUE);
+                        request.setHeader(header);
                     }
-                    request.setAttachment(attachment);
-                    SettableHeader header = createHeader();
-                    header.setName(HttpHeaders.CONTENT_TYPE);
-                    header.setValue(client.isXml()?SupportedMediaTypes.APPLICATION_VND_DCTM_XML_VALUE:SupportedMediaTypes.APPLICATION_VND_DCTM_JSON_VALUE);
-                    request.setHeader(header);
+                    if(((Map<?,?>)requestEntity.getBody()).containsKey("binary")) {
+                        List<HttpEntity<?>> binaries = ((List<HttpEntity<?>>)((Map<?,?>)requestEntity.getBody()).get("binary"));
+                        if(client.getMajorVersion() >= 7.3) {
+                            for(HttpEntity<?> binaryEntity : binaries) {
+                                request.addAttachment(toAttachment(binaryEntity));
+                            }
+                        } else {
+                            if(binaries.size() > 1) {
+                                throw new IllegalArgumentException("The batch for the rest services " + client.getMajorVersion() + " only supports one attachment for each operation");
+                            }
+                            request.setAttachment(toAttachment(binaries.get(0)));
+                        }
+                    }
                 } else {
                     request.setEntity(toEntity(requestEntity.getBody()));
                 }
@@ -134,6 +153,18 @@ public abstract class BatchBuilder {
             operation.setRequest(request);
             batch.addOperation(operation);
             return null;
+        }
+        
+        private Attachment toAttachment(HttpEntity<?> binaryEntity) {
+            SettableInclude include = createInclude();
+            include.setHref(UUID.randomUUID().toString());
+            SettableAttachment attachment = createAttachment();
+            attachment.setInclude(include);
+            attachment.setContentStream((InputStream)binaryEntity.getBody());
+            if(binaryEntity.getHeaders().getContentType() != null) {
+                attachment.setContentType(binaryEntity.getHeaders().getContentType().toString());
+            }
+            return attachment;
         }
         
         private String toEntity(Object o) {

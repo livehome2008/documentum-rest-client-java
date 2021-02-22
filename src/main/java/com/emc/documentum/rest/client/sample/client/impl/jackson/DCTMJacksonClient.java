@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. EMC Corporation. All Rights Reserved.
+ * Copyright (c) 2018. Open Text Corporation. All Rights Reserved.
  */
 package com.emc.documentum.rest.client.sample.client.impl.jackson;
 
@@ -10,7 +10,6 @@ import java.util.List;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -18,89 +17,142 @@ import org.springframework.web.client.RestTemplate;
 
 import com.emc.documentum.rest.client.sample.client.DCTMRestClient;
 import com.emc.documentum.rest.client.sample.client.impl.AbstractRestTemplateClient;
+import com.emc.documentum.rest.client.sample.client.util.Collections;
 import com.emc.documentum.rest.client.sample.client.util.Headers;
 import com.emc.documentum.rest.client.sample.client.util.UriHelper;
-import com.emc.documentum.rest.client.sample.model.Entry;
+import com.emc.documentum.rest.client.sample.model.AuditPolicy;
+import com.emc.documentum.rest.client.sample.model.AuditTrail;
+import com.emc.documentum.rest.client.sample.model.AvailableAuditEvents;
+import com.emc.documentum.rest.client.sample.model.Comment;
 import com.emc.documentum.rest.client.sample.model.Feed;
 import com.emc.documentum.rest.client.sample.model.FolderLink;
 import com.emc.documentum.rest.client.sample.model.HomeDocument;
+import com.emc.documentum.rest.client.sample.model.Lifecycle;
 import com.emc.documentum.rest.client.sample.model.LinkRelation;
 import com.emc.documentum.rest.client.sample.model.Linkable;
 import com.emc.documentum.rest.client.sample.model.ObjectAspects;
+import com.emc.documentum.rest.client.sample.model.ObjectLifecycle;
+import com.emc.documentum.rest.client.sample.model.Permission;
+import com.emc.documentum.rest.client.sample.model.PermissionSet;
 import com.emc.documentum.rest.client.sample.model.Preference;
 import com.emc.documentum.rest.client.sample.model.Repository;
 import com.emc.documentum.rest.client.sample.model.RestObject;
 import com.emc.documentum.rest.client.sample.model.RestType;
+import com.emc.documentum.rest.client.sample.model.SavedSearch;
+import com.emc.documentum.rest.client.sample.model.Search;
 import com.emc.documentum.rest.client.sample.model.SearchFeed;
+import com.emc.documentum.rest.client.sample.model.SearchTemplate;
 import com.emc.documentum.rest.client.sample.model.ValueAssistant;
 import com.emc.documentum.rest.client.sample.model.ValueAssistantRequest;
+import com.emc.documentum.rest.client.sample.model.VirtualDocumentNode;
 import com.emc.documentum.rest.client.sample.model.batch.Batch;
 import com.emc.documentum.rest.client.sample.model.batch.Capabilities;
+import com.emc.documentum.rest.client.sample.model.json.JsonAuditPolicy;
+import com.emc.documentum.rest.client.sample.model.json.JsonAuditTrail;
+import com.emc.documentum.rest.client.sample.model.json.JsonAvailableAuditEvents;
 import com.emc.documentum.rest.client.sample.model.json.JsonBatch;
 import com.emc.documentum.rest.client.sample.model.json.JsonBatchCapabilities;
+import com.emc.documentum.rest.client.sample.model.json.JsonComment;
 import com.emc.documentum.rest.client.sample.model.json.JsonFeeds;
 import com.emc.documentum.rest.client.sample.model.json.JsonFolderLink;
 import com.emc.documentum.rest.client.sample.model.json.JsonHomeDocument;
+import com.emc.documentum.rest.client.sample.model.json.JsonLifecycle;
 import com.emc.documentum.rest.client.sample.model.json.JsonObject;
 import com.emc.documentum.rest.client.sample.model.json.JsonObjectAspects;
+import com.emc.documentum.rest.client.sample.model.json.JsonObjectLifecycle;
+import com.emc.documentum.rest.client.sample.model.json.JsonPermission;
+import com.emc.documentum.rest.client.sample.model.json.JsonPermissionSet;
 import com.emc.documentum.rest.client.sample.model.json.JsonPreference;
 import com.emc.documentum.rest.client.sample.model.json.JsonRepository;
+import com.emc.documentum.rest.client.sample.model.json.JsonSavedSearch;
+import com.emc.documentum.rest.client.sample.model.json.JsonSearchTemplate;
+import com.emc.documentum.rest.client.sample.model.json.JsonSubscribers;
 import com.emc.documentum.rest.client.sample.model.json.JsonType;
+import com.emc.documentum.rest.client.sample.model.json.JsonType71;
 import com.emc.documentum.rest.client.sample.model.json.JsonValueAssistance;
 import com.emc.documentum.rest.client.sample.model.json.JsonValueAssistantRequest;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.ABOUT;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.ACLS;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.ASPECT_TYPES;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.ASSIS_VALUES;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.ASSOCIATIONS;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.AUDIT_POLICIES;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.AVAILABLE_AUDIT_EVENTS;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.BATCH_CAPABILITIES;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.CABINETS;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.CANCEL_CHECKOUT;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.CANCEL_DEMOTION;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.CANCEL_PROMOTION;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.CANCEL_RESUMPTION;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.CANCEL_SUSPENSION;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.CHECKIN_BRANCH_VERSION;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.CHECKIN_NEXT_MAJOR;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.CHECKIN_NEXT_MINOR;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.CHECKOUT;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.COMMENTS;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.CONTENTS;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.CURRENT_USER_PREFERENCES;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.DELETE;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.DEMATERIALIZE;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.DEMOTION;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.DOCUMENTS;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.EDIT;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.FOLDERS;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.FORMATS;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.GROUPS;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.LIFECYCLES;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.MATERIALIZE;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.NETWORK_LOCATIONS;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.OBJECTS;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.OBJECT_ASPECTS;
-import static com.emc.documentum.rest.client.sample.model.LinkRelation.PAGING_FIRST;
-import static com.emc.documentum.rest.client.sample.model.LinkRelation.PAGING_LAST;
-import static com.emc.documentum.rest.client.sample.model.LinkRelation.PAGING_NEXT;
-import static com.emc.documentum.rest.client.sample.model.LinkRelation.PAGING_PREV;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.OBJECT_LIFECYCLE;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.PRIMARY_CONTENT;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.PROMOTION;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.RECENT_TRAILS;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.REGISTERED_AUDIT_EVENTS;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.RELATIONS;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.RELATION_TYPES;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.REPLIES;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.REPOSITORIES;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.RESUMPTION;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.SAVED_SEARCHES;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.SAVED_SEARCH_SAVED_RESULTS;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.SEARCH;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.SEARCH_EXECUTION;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.SEARCH_TEMPLATES;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.SELF;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.SHARED_PARENT;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.SUBSCRIBE;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.SUBSCRIPTIONS;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.SUSPENSION;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.TYPES;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.UNSUBSCRIBE;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.USERS;
 import static com.emc.documentum.rest.client.sample.model.LinkRelation.VERSIONS;
+import static com.emc.documentum.rest.client.sample.model.LinkRelation.VIRTUAL_DOCUMENT_NODES;
 
 /**
  * the DCTMRestClient implementation by Jackson json support
  */
 @NotThreadSafe
-public class DCTMJacksonClient extends AbstractRestTemplateClient implements DCTMRestClient {
-    private final ObjectMapper mapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
-
+public class DCTMJacksonClient extends AbstractRestTemplateClient implements DCTMRestClient, Cloneable {
     public DCTMJacksonClient(String contextRoot, String repositoryName,
             String username, String password, boolean useFormatExtension) {
         super(contextRoot, repositoryName, username, password, useFormatExtension);
     }
+
+    public DCTMJacksonClient(String contextRoot, String repositoryName,
+            String username, String password, boolean useFormatExtension, boolean ignoreSslWarning) {
+        super(contextRoot, repositoryName, username, password, useFormatExtension, ignoreSslWarning);
+    }
     
+    @Override
+    public DCTMJacksonClient clone() {
+        return clone(new DCTMJacksonClient(contextRoot, repositoryName, username, password, useFormatExtension, ignoreSslWarning));
+    }
+
     @Override
     public HomeDocument getHomeDocument() {
         if(homeDocument == null) {
@@ -120,88 +172,60 @@ public class DCTMJacksonClient extends AbstractRestTemplateClient implements DCT
     @Override
     public Feed<Repository> getRepositories() {
         if(repositories == null) {
-            String repositoriesUri = getHomeDocument().getHref(REPOSITORIES);
-            Feed<? extends Repository> feed = get(repositoriesUri, true, JsonFeeds.RepositoryFeed.class);
-            repositories = (Feed<Repository>)feed;
+            repositories = feed(getHomeDocument(), REPOSITORIES, JsonFeeds.RepositoryFeed.class);
         }
         return repositories;
     }
     
     @Override
     public Repository getRepository() {
-        if(repository == null) {
-            boolean resetEnableStreaming = enableStreaming;
-            Feed<Repository> repositories = getRepositories();
-            for(Entry<Repository> e : repositories.getEntries()) {
-                if(repositoryName.equals(e.getTitle())) {
-                    repository = get(e.getContentSrc(), false, JsonRepository.class);
-                }
-            }
-            if(resetEnableStreaming) {
-                enableStreaming = resetEnableStreaming;
-            }
-        }
-        return repository;
+        return getRepository(JsonRepository.class);
     }
     
     @Override
     public Feed<RestObject> dql(String dql, String... params) {
-        Feed<? extends RestObject> feed = get(getRepository().getHref(SELF), true, JsonFeeds.ObjectFeed.class, UriHelper.append(params, "dql", dql));
-        return (Feed<RestObject>)feed;
+        return objectFeed(SELF, UriHelper.append(params, "dql", dql));
     }
     
     @SuppressWarnings("unchecked")
     @Override
     public SearchFeed<RestObject> search(String search, String... params) {
-        SearchFeed<? extends RestObject> feed = get(getRepository().getHref(SEARCH), true, JsonFeeds.SearchFeed.class, UriHelper.append(params, "q", search));
-        return (SearchFeed<RestObject>)feed;
+        return (SearchFeed)get(getRepository().getHref(SEARCH), true, JsonFeeds.SearchFeed.class, UriHelper.append(params, "q", search));
+    }
+
+    @Override
+    public SearchFeed<RestObject> search(Search search, String... params) {
+        return (SearchFeed)post(getRepository().getHref(SEARCH), search, JsonFeeds.SearchFeed.class, params);
     }
 
     @Override
     public Feed<RestObject> getCabinets(String... params) {
-        Repository repository = getRepository();
-        String cabinetsUri = repository.getHref(CABINETS);
-        Feed<? extends RestObject> feed = get(cabinetsUri, true, JsonFeeds.ObjectFeed.class, params);
-        return (Feed<RestObject>)feed;
+        return objectFeed(CABINETS, params);
     }
     
     @Override
     public RestObject getCabinet(String cabinet, String... params) {
-        RestObject obj = null; 
-        Feed<RestObject> feed = getCabinets("filter", "starts-with(object_name,'" + cabinet + "')");
-        List<Entry<RestObject>> entries = feed.getEntries();
-        if(entries != null) {
-            for(Entry<RestObject> e : (List<Entry<RestObject>>)entries) {
-                if(cabinet.equals(e.getTitle())) {
-                    obj = get(e.getContentSrc(), false, JsonObject.class);
-                    break;
-                }
-            }
-        }
-        return obj;
+        return getCabinet(cabinet, JsonObject.class, params);
     }
-    
+
     @Override
-    public RestObject get(RestObject object, String... params) {
-        return get(object.getHref(SELF), false, object.getClass(), params);
+    public RestObject createCabinet(RestObject cabinetToCreate) {
+        return post(getRepository().getHref(CABINETS), new JsonObject(cabinetToCreate), JsonObject.class);
     }
     
     @Override
     public Feed<RestObject> getFolders(Linkable parent, String... params) {
-        Feed<? extends RestObject> feed = get(parent.getHref(FOLDERS), true, JsonFeeds.ObjectFeed.class, params);
-        return (Feed<RestObject>)feed;
+        return objectFeed(parent, FOLDERS, params);
     }
     
     @Override
     public Feed<RestObject> getObjects(Linkable parent, String... params) {
-        Feed<? extends RestObject> feed = get(parent.getHref(OBJECTS), true, JsonFeeds.ObjectFeed.class, params);
-        return (Feed<RestObject>)feed;
+        return objectFeed(parent, OBJECTS, params);
     }
     
     @Override
     public Feed<RestObject> getDocuments(Linkable parent, String... params) {
-        Feed<? extends RestObject> feed = get(parent.getHref(DOCUMENTS), true, JsonFeeds.ObjectFeed.class, params);
-        return (Feed<RestObject>)feed;
+        return objectFeed(parent, DOCUMENTS, params);
     }
     
     @Override
@@ -220,6 +244,11 @@ public class DCTMJacksonClient extends AbstractRestTemplateClient implements DCT
     }
 
     @Override
+    public RestObject createObject(Linkable parent, LinkRelation rel, RestObject objectToCreate, List<Object> contents, List<String> contentMediaTypes, String... params) {
+        return post(parent.getHref(rel), new JsonObject(objectToCreate), contents, contentMediaTypes, JsonObject.class, params);
+    }
+
+    @Override
     public RestObject getObject(String objectUri, String... params) {
         return get(objectUri, false, JsonObject.class, params);
     }
@@ -227,6 +256,11 @@ public class DCTMJacksonClient extends AbstractRestTemplateClient implements DCT
     @Override
     public RestObject createDocument(Linkable parent, RestObject objectToCreate, Object content, String contentMediaType, String... params) {
         return post(parent.getHref(DOCUMENTS), new JsonObject(objectToCreate), content, contentMediaType, JsonObject.class, params);
+    }
+    
+    @Override
+    public RestObject createDocument(Linkable parent, RestObject objectToCreate, List<Object> contents, List<String> contentMediaTypes, String... params) {
+        return post(parent.getHref(DOCUMENTS), new JsonObject(objectToCreate), contents, contentMediaTypes, JsonObject.class, params);
     }
     
     @Override
@@ -256,8 +290,7 @@ public class DCTMJacksonClient extends AbstractRestTemplateClient implements DCT
     
     @Override
     public Feed<RestObject> getContents(RestObject object, String... params) {
-        Feed<? extends RestObject> feed = get(object.getHref(CONTENTS), true, JsonFeeds.ObjectFeed.class, params);
-        return (Feed<RestObject>)feed;
+        return objectFeed(object, CONTENTS, params);
     }
     
     @Override
@@ -271,24 +304,55 @@ public class DCTMJacksonClient extends AbstractRestTemplateClient implements DCT
     }
     
     @Override
-    public RestObject checkinNextMajor(RestObject oldObject, RestObject newObject, Object content, String contentMediaType, String... params) {
-        return checkin(oldObject, CHECKIN_NEXT_MAJOR, newObject, content, contentMediaType, params);
+    public RestObject checkinNextMajor(RestObject oldObject, RestObject newObject, String... params) {
+        return post(oldObject.getHref(CHECKIN_NEXT_MAJOR), new JsonObject(newObject), JsonObject.class, params);
     }
     
     @Override
+    public RestObject checkinNextMajor(RestObject oldObject, RestObject newObject, Object content, String contentMediaType, String... params) {
+        return post(oldObject.getHref(CHECKIN_NEXT_MAJOR), newObject==null?null:new JsonObject(newObject), content, contentMediaType, JsonObject.class, params);
+    }
+
+    @Override
+    public RestObject checkinNextMajor(RestObject oldObject, RestObject newObject, List<Object> contents,
+            List<String> contentMediaTypes, String... params) {
+        return post(oldObject.getHref(CHECKIN_NEXT_MAJOR), newObject==null?null:new JsonObject(newObject), contents, contentMediaTypes, JsonObject.class, params);
+    }
+
+    @Override
+    public RestObject checkinNextMinor(RestObject oldObject, RestObject newObject, String... params) {
+        return post(oldObject.getHref(CHECKIN_NEXT_MINOR), new JsonObject(newObject), JsonObject.class, params);
+    }
+
+    @Override
     public RestObject checkinNextMinor(RestObject oldObject, RestObject newObject, Object content, String contentMediaType, String... params) {
-        return checkin(oldObject, CHECKIN_NEXT_MINOR, newObject, content, contentMediaType, params);
+        return post(oldObject.getHref(CHECKIN_NEXT_MINOR), newObject==null?null:new JsonObject(newObject), content, contentMediaType, JsonObject.class, params);
+    }
+    
+    @Override
+    public RestObject checkinNextMinor(RestObject oldObject, RestObject newObject, List<Object> contents, List<String> contentMediaTypes, String... params) {
+        return post(oldObject.getHref(CHECKIN_NEXT_MINOR), newObject==null?null:new JsonObject(newObject), contents, contentMediaTypes, JsonObject.class, params);
+    }
+
+    @Override
+    public RestObject checkinBranch(RestObject oldObject, RestObject newObject, String... params) {
+        return post(oldObject.getHref(CHECKIN_BRANCH_VERSION), new JsonObject(newObject), JsonObject.class, params);
     }
     
     @Override
     public RestObject checkinBranch(RestObject oldObject, RestObject newObject, Object content, String contentMediaType, String... params) {
-        return checkin(oldObject, CHECKIN_BRANCH_VERSION, newObject, content, contentMediaType, params);
+        return post(oldObject.getHref(CHECKIN_BRANCH_VERSION), newObject==null?null:new JsonObject(newObject), content, contentMediaType, JsonObject.class, params);
     }
-    
+
+    @Override
+    public RestObject checkinBranch(RestObject oldObject, RestObject newObject, List<Object> contents,
+            List<String> contentMediaTypes, String... params) {
+        return post(oldObject.getHref(CHECKIN_BRANCH_VERSION), newObject==null?null:new JsonObject(newObject), contents, contentMediaTypes, JsonObject.class, params);
+    }
+
     @Override
     public Feed<RestObject> getVersions(RestObject object, String... params) {
-        Feed<? extends RestObject> feed = get(object.getHref(VERSIONS), true, JsonFeeds.ObjectFeed.class, params);
-        return (Feed<RestObject>)feed;
+        return objectFeed(object, VERSIONS, params);
     }
     
     @Override
@@ -303,30 +367,27 @@ public class DCTMJacksonClient extends AbstractRestTemplateClient implements DCT
 
     @Override
     public RestObject reparent(RestObject oldObject, RestObject newParent) {
-        JsonObject parent = new JsonObject();
-        parent.setHref(newParent.getHref(SELF));
-        return post(oldObject.getHref(SHARED_PARENT), parent, JsonObject.class);
+        return post(oldObject.getHref(SHARED_PARENT), new JsonObject(newParent.getHref(SELF)), JsonObject.class);
     }
     
     @Override
     public RestType getType(String name, String... params) {
-        return get(getRepository().getHref(TYPES)+"/"+name, false, JsonType.class, params);
+        if(getMajorVersion() > 7.1) {
+            return get(getRepository().getHref(TYPES)+"/"+name, false, JsonType.class, params);
+        } else {
+            JsonType71 type71 = get(getRepository().getHref(TYPES)+"/"+name, false, JsonType71.class, params);
+            return type71==null?null:type71.getType();
+        }
     }
     
     @Override
     public Feed<RestType> getTypes(String... params) {
-        Repository repository = getRepository();
-        String typesUri = repository.getHref(TYPES);
-        Feed<? extends RestType> feed = get(typesUri, true, JsonFeeds.TypeFeed.class, params);
-        return (Feed<RestType>)feed;
+        return feed(TYPES, JsonFeeds.TypeFeed.class, params);
     }
     
     @Override
     public Feed<RestObject> getAspectTypes(String... params) {
-        Repository repository = getRepository();
-        String aspectTypesUri = repository.getHref(ASPECT_TYPES);
-        Feed<? extends RestObject> feed = get(aspectTypesUri, true, JsonFeeds.ObjectFeed.class, params);
-        return (Feed<RestObject>)feed;
+        return objectFeed(ASPECT_TYPES, params);
     }
 
     @Override
@@ -350,22 +411,40 @@ public class DCTMJacksonClient extends AbstractRestTemplateClient implements DCT
     }
     
     @Override
+    public ObjectAspects getObjectAspects(RestObject object, String... params) {
+        return get(object.getHref(OBJECT_ASPECTS), JsonObjectAspects.class, params);        
+    }
+    
+    @Override
     public Feed<RestObject> getUsers(String... params) {
         return getUsers(getRepository(), params);
     }
     
     @Override
     public Feed<RestObject> getUsers(Linkable parent, String... params) {
-        Feed<? extends RestObject> feed = get(parent.getHref(USERS), true, JsonFeeds.ObjectFeed.class, params);
-        return (Feed<RestObject>)feed;
+        return objectFeed(parent, USERS, params);
     }
 
     @Override
     public Feed<RestObject> getGroups(String... params) {
-        Feed<? extends RestObject> feed = get(getRepository().getHref(GROUPS), true, JsonFeeds.ObjectFeed.class, params);
-        return (Feed<RestObject>)feed;
+        return getGroups(getRepository(), params);
     }
     
+    @Override
+    public Feed<RestObject> getGroups(Linkable parent, String... params) {
+        return objectFeed(parent, GROUPS, params);
+    }
+    
+    @Override
+    public RestObject getCurrentUser(String... params) {
+        return get(getRepository().getHref(LinkRelation.CURRENT_USER), false, JsonObject.class, params);
+    }
+    
+    @Override
+    public RestObject getDefaultFolder(String... params) {
+        return get(getCurrentUser().getHref(LinkRelation.DEFAULT_FOLDER), false, JsonObject.class, params);
+    }
+
     @Override
     public RestObject getUser(String userUri, String... params) {
         return get(userUri, false, JsonObject.class, params);
@@ -388,15 +467,17 @@ public class DCTMJacksonClient extends AbstractRestTemplateClient implements DCT
 
     @Override
     public void addUserToGroup(RestObject group, RestObject user) {
-        JsonObject groupUser = new JsonObject();
-        groupUser.setHref(user.getHref(SELF));
-        post(group.getHref(USERS), groupUser, null);
+        post(group.getHref(USERS), new JsonObject(user.getHref(SELF)), null);
+    }
+    
+    @Override
+    public void addGroupToGroup(RestObject group, RestObject subGroup) {
+        post(group.getHref(GROUPS), new JsonObject(subGroup.getHref(SELF)), null);
     }
      
     @Override
     public Feed<RestObject> getRelationTypes(String... params) {
-        Feed<? extends RestObject> feed = get(getRepository().getHref(RELATION_TYPES), true, JsonFeeds.ObjectFeed.class, params);
-        return (Feed<RestObject>)feed;
+        return objectFeed(RELATION_TYPES, params);
     }
     
     @Override
@@ -406,8 +487,7 @@ public class DCTMJacksonClient extends AbstractRestTemplateClient implements DCT
     
     @Override
     public Feed<RestObject> getRelations(String... params) {
-        Feed<? extends RestObject> feed = get(getRepository().getHref(RELATIONS), true, JsonFeeds.ObjectFeed.class, params);
-        return (Feed<RestObject>)feed;
+        return objectFeed(RELATIONS, params);
     }
     
     @Override
@@ -422,8 +502,7 @@ public class DCTMJacksonClient extends AbstractRestTemplateClient implements DCT
     
     @Override
     public Feed<RestObject> getFormats(String... params) {
-        Feed<? extends RestObject> feed = get(getRepository().getHref(FORMATS), true, JsonFeeds.ObjectFeed.class, params);
-        return (Feed<RestObject>)feed;
+        return objectFeed(FORMATS, params);
     }
     
     @Override
@@ -433,8 +512,7 @@ public class DCTMJacksonClient extends AbstractRestTemplateClient implements DCT
 
     @Override
     public Feed<RestObject> getNetworkLocations(String... params) {
-        Feed<? extends RestObject> feed = get(getRepository().getHref(NETWORK_LOCATIONS), true, JsonFeeds.ObjectFeed.class, params);
-        return (Feed<RestObject>)feed;
+        return objectFeed(NETWORK_LOCATIONS, params);
     }
     
     @Override
@@ -444,8 +522,7 @@ public class DCTMJacksonClient extends AbstractRestTemplateClient implements DCT
     
     @Override
     public Feed<FolderLink> getFolderLinks(Linkable object, LinkRelation rel, String... params) {
-        Feed<? extends FolderLink> feed = get(object.getHref(rel), true, JsonFeeds.FolderLinkFeed.class, params);
-        return (Feed<FolderLink>)feed;
+        return feed(object, rel, JsonFeeds.FolderLinkFeed.class, params);
     }
     
     @Override
@@ -464,6 +541,26 @@ public class DCTMJacksonClient extends AbstractRestTemplateClient implements DCT
     }
     
     @Override
+    public Feed<RestObject> getAcls(String... params) {
+        return objectFeed(ACLS, params);
+    }
+    
+    @Override
+    public Feed<RestObject> getAclAssociations(Linkable acl, String... params) {
+        return objectFeed(acl, ASSOCIATIONS, params);
+    }
+    
+    @Override
+    public RestObject getAcl(String uri, String... params) {
+        return get(uri, false, JsonObject.class, params);
+    }
+    
+    @Override
+    public RestObject createAcl(RestObject object) {
+        return post(getRepository().getHref(ACLS), new JsonObject(object), JsonObject.class);
+    }
+    
+    @Override
     public Capabilities getBatchCapabilities() {
         return get(getRepository().getHref(BATCH_CAPABILITIES), false, JsonBatchCapabilities.class);
     }
@@ -475,8 +572,7 @@ public class DCTMJacksonClient extends AbstractRestTemplateClient implements DCT
 
     @Override
     public Feed<Preference> getPreferences(String... params) {
-        Feed<? extends Preference> feed = get(getRepository().getHref(CURRENT_USER_PREFERENCES), true, JsonFeeds.PreferenceFeed.class, params);
-        return (Feed<Preference>)feed;
+        return feed(CURRENT_USER_PREFERENCES, JsonFeeds.PreferenceFeed.class, params);
     }
 
     @Override
@@ -493,47 +589,108 @@ public class DCTMJacksonClient extends AbstractRestTemplateClient implements DCT
     public Preference updatePreference(Preference oldPreference, Preference newPreference) {
         return post(oldPreference.self(), new JsonPreference(newPreference), JsonPreference.class);
     }
-
-    @Override
-    public <T extends Linkable> Feed<T> nextPage(Feed<T> feed) {
-        return page(feed.getHref(PAGING_NEXT), feed.getClass());
-    }
     
     @Override
-    public <T extends Linkable> Feed<T> previousPage(Feed<T> feed) {
-        return page(feed.getHref(PAGING_PREV), feed.getClass());
+    public Permission getPermission(Linkable linkable, String... params) {
+        return get(linkable.getHref(LinkRelation.PERMISSIONS), false, JsonPermission.class, params);
     }
 
     @Override
-    public <T extends Linkable> Feed<T> firstPage(Feed<T> feed) {
-        return page(feed.getHref(PAGING_FIRST), feed.getClass());
+    public PermissionSet getPermissionSet(Linkable linkable, String... params) {
+        return get(linkable.getHref(LinkRelation.PERMISSION_SET), false, JsonPermissionSet.class, params);
     }
 
     @Override
-    public <T extends Linkable> Feed<T> lastPage(Feed<T> feed) {
-        return page(feed.getHref(PAGING_LAST), feed.getClass());
+    public Feed<Comment> getComments(Linkable parent, String... params) {
+        return feed(parent, COMMENTS, JsonFeeds.CommentFeed.class, params);
+    }
+
+    @Override
+    public Comment createComment(Linkable parent, Comment comment) {
+        return post(parent.getHref(COMMENTS), new JsonComment(comment), JsonComment.class);
+    }
+
+    @Override
+    public Comment getComment(String commentUri, String... params) {
+        return get(commentUri, false, JsonComment.class, params);
+    }
+
+    @Override
+    public Feed<Comment> getReplies(Linkable parent, String... params) {
+        return feed(parent, REPLIES, JsonFeeds.CommentFeed.class, params);
+    }
+
+    @Override
+    public Comment createReply(Linkable parent, Comment comment) {
+        return post(parent.getHref(REPLIES), new JsonComment(comment), JsonComment.class);
+    }
+
+    @Override
+    public Feed<VirtualDocumentNode> getVirtualDocumentNodes(Linkable linkable, String... params) {
+        return feed(linkable, VIRTUAL_DOCUMENT_NODES, JsonFeeds.VirtualDocumentNodeFeed.class, params);
     }
     
-    private <T extends Linkable> Feed<T> page(String uri, Class<? extends Feed> clazz) {
-        Feed<T> feed = null;
-        if(uri != null) {
-            feed = get(uri, true, clazz);
-        }
-        return feed;
+    @Override
+    public Feed<SearchTemplate> getSearchTemplates(String... params) {
+        return feed(SEARCH_TEMPLATES, JsonFeeds.SearchTemplateFeed.class, params);
+    }
+
+    @Override
+    public SearchTemplate getSearchTemplate(String uri, String... params) {
+        return get(uri, false, JsonSearchTemplate.class, params);
+    }
+
+    @Override
+    public SearchTemplate createSearchTemplate(SearchTemplate template) {
+        return post(getRepository().getHref(SEARCH_TEMPLATES), new JsonSearchTemplate(template), JsonSearchTemplate.class);
     }
     
-    private RestObject checkin(RestObject oldObject, LinkRelation rel, RestObject newObject, Object content, String contentMediaType, String... params) {
-        RestObject resp = null;
-        if(newObject != null && content != null) {
-            resp = post(oldObject.getHref(rel), new JsonObject(newObject), content, contentMediaType, JsonObject.class, params);
-        } else if(newObject == null) {
-            resp = post(oldObject.getHref(rel), content, contentMediaType==null?MediaType.APPLICATION_OCTET_STREAM_VALUE:contentMediaType, oldObject.getClass(), params);
-        } else if(content == null) {
-            resp = post(oldObject.getHref(rel), new JsonObject(newObject), JsonObject.class, params);
-        }
-        return resp;
+    @Override
+    public SearchFeed<RestObject> executeSearchTemplate(SearchTemplate toBeExecuted, String... params) {
+        return (SearchFeed)post(toBeExecuted.getHref(SEARCH_EXECUTION), toBeExecuted, JsonFeeds.SearchFeed.class, params);
+    }
+
+    @Override
+    public SearchFeed<RestObject> executeSavedSearch(SavedSearch toBeExecuted, String... params) {
+        return (SearchFeed)get(toBeExecuted.getHref(SEARCH_EXECUTION), JsonFeeds.SearchFeed.class, params);
     }
     
+    @Override
+    public Feed<SavedSearch> getSavedSearches(String... params) {
+        return feed(SAVED_SEARCHES, JsonFeeds.SavedSearchFeed.class, params);
+    }
+
+    @Override
+    public SavedSearch getSavedSearch(String uri, String... params) {
+        return get(uri, false, JsonSavedSearch.class, params);
+    }
+
+    @Override
+    public SavedSearch createSavedSearch(SavedSearch savedSearch) {
+        return post(getRepository().getHref(SAVED_SEARCHES), new JsonSavedSearch(savedSearch), JsonSavedSearch.class);
+    }
+    
+    @Override
+    public SavedSearch updateSavedSearch(SavedSearch oldSavedSearch, SavedSearch newSavedSearch) {
+        return post(oldSavedSearch.self(), new JsonSavedSearch(newSavedSearch), JsonSavedSearch.class);
+    }
+
+    @Override
+    public SearchFeed<RestObject> enableSavedSearchResult(SavedSearch toBeExecuted, String... params) {
+        return (SearchFeed)put(toBeExecuted.getHref(SAVED_SEARCH_SAVED_RESULTS), JsonFeeds.SearchFeed.class, params);
+    }
+
+    @Override
+    public void disableSavedSearchResult(SavedSearch toBeExecuted) {
+        delete(toBeExecuted.getHref(SAVED_SEARCH_SAVED_RESULTS));
+    }
+
+    @Override
+    public SearchFeed<RestObject> getSavedSearchResult(SavedSearch toBeExecuted, String... params) {
+        return (SearchFeed)get(toBeExecuted.getHref(SAVED_SEARCH_SAVED_RESULTS), true, JsonFeeds.SearchFeed.class, params);
+    }
+
+    @SuppressWarnings("unchecked")
     @Override
     protected void initRestTemplate(RestTemplate restTemplate) {
         super.initRestTemplate(restTemplate);
@@ -545,7 +702,7 @@ public class DCTMJacksonClient extends AbstractRestTemplateClient implements DCT
                 try {
                     Field pcField = FormHttpMessageConverter.class.getDeclaredField("partConverters");
                     pcField.setAccessible(true);
-                    List<HttpMessageConverter<?>> partConverters = (List<HttpMessageConverter<?>>)pcField.get(c);
+                    List<HttpMessageConverter<?>> partConverters = ((List<HttpMessageConverter<?>>)pcField.get(c));
                     for(HttpMessageConverter<?> pc : partConverters) {
                         if(pc instanceof MappingJackson2HttpMessageConverter) {
                             ((MappingJackson2HttpMessageConverter)pc).getObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
@@ -558,11 +715,23 @@ public class DCTMJacksonClient extends AbstractRestTemplateClient implements DCT
             }
         }
     }
+    
+    @SuppressWarnings("unchecked")
+    private Feed<RestObject> objectFeed(Linkable parent, LinkRelation rel, String... params) {
+        return feed(parent, rel, JsonFeeds.ObjectFeed.class, params);
+    }
+    
+    @SuppressWarnings("unchecked")
+    private Feed<RestObject> objectFeed(LinkRelation rel, String... params) {
+        return feed(rel, JsonFeeds.ObjectFeed.class, params);
+    }
 
     @Override
     public void serialize(Object object, OutputStream os) {
         try {
-            mapper.writeValue(os, object);
+            DCTMJacksonMapper.marshal(os, object);
+        } catch (RuntimeException re) {
+            throw (RuntimeException)re;
         } catch (Exception e) {
             throw new IllegalArgumentException(e);
         }
@@ -571,5 +740,162 @@ public class DCTMJacksonClient extends AbstractRestTemplateClient implements DCT
     @Override
     public ClientType getClientType() {
         return ClientType.JSON;
+    }
+
+    @Override
+    public Feed<Lifecycle> getLifecycles(String... params) {
+        return feed(LIFECYCLES, JsonFeeds.LifecycleFeed.class, params);
+    }
+    
+    @Override
+    public Lifecycle getLifecycle(String uri, String... params) {
+        return get(uri, false, JsonLifecycle.class, params);
+    }
+
+    @Override
+    public ObjectLifecycle attach(RestObject object, ObjectLifecycle objectLifecycle) {
+        return put(object.getHref(OBJECT_LIFECYCLE), objectLifecycle==null?null:new JsonObjectLifecycle(objectLifecycle), JsonObjectLifecycle.class);
+    }
+
+    @Override
+    public void detach(ObjectLifecycle objectLifecycle) {
+        delete(objectLifecycle.self());
+    }
+    
+    @Override
+    public ObjectLifecycle getObjectLifecycle(RestObject object, String... params) {
+        return get(object.getHref(OBJECT_LIFECYCLE), JsonObjectLifecycle.class, params);
+    }
+
+    @Override
+    public ObjectLifecycle promote(ObjectLifecycle objectLifecycle, String... params) {
+        return put(objectLifecycle.getHref(PROMOTION), JsonObjectLifecycle.class, params);
+    }
+
+    @Override
+    public ObjectLifecycle demote(ObjectLifecycle objectLifecycle, String... params) {
+        return put(objectLifecycle.getHref(DEMOTION), JsonObjectLifecycle.class, params);
+    }
+
+    @Override
+    public ObjectLifecycle suspend(ObjectLifecycle objectLifecycle, String... params) {
+        return put(objectLifecycle.getHref(SUSPENSION), JsonObjectLifecycle.class, params);
+    }
+
+    @Override
+    public ObjectLifecycle resume(ObjectLifecycle objectLifecycle, String... params) {
+        return put(objectLifecycle.getHref(RESUMPTION), JsonObjectLifecycle.class, params);
+    }
+
+    @Override
+    public void cancel(ObjectLifecycle objectLifecycle) {
+        if(objectLifecycle.hasHref(CANCEL_PROMOTION)) {
+            delete(objectLifecycle.getHref(CANCEL_PROMOTION));
+        }
+        if(objectLifecycle.hasHref(CANCEL_DEMOTION)) {
+            delete(objectLifecycle.getHref(CANCEL_DEMOTION));
+        }
+        if(objectLifecycle.hasHref(CANCEL_SUSPENSION)) {
+            delete(objectLifecycle.getHref(CANCEL_SUSPENSION));
+        }
+        if(objectLifecycle.hasHref(CANCEL_RESUMPTION)) {
+            delete(objectLifecycle.getHref(CANCEL_RESUMPTION));
+        }
+    }
+
+    @Override
+    public RestObject subscribe(RestObject object, String... subscribers) {
+        if(!object.hasHref(SUBSCRIBE)) {
+            object = get(object, "check-subscription", "true");
+        }
+        if(object.hasHref(SUBSCRIBE)) {
+            return Collections.isEmpty(subscribers) ?
+                    put(object.getHref(SUBSCRIBE), JsonObject.class):
+                    put(object.getHref(SUBSCRIBE),  new JsonSubscribers(subscribers), JsonObject.class);
+        } else if(object.hasHref(UNSUBSCRIBE)) {
+            throw new IllegalArgumentException("the object is already subscribed");
+        } else {
+            throw new IllegalArgumentException("the object is not subscribable");
+        }
+    }
+
+    @Override
+    public void unsubscribe(RestObject object) {
+        if(!object.hasHref(UNSUBSCRIBE)) {
+            object = get(object, "check-subscription", "true");
+        }
+        if(object.hasHref(UNSUBSCRIBE)) {
+            delete(object.getHref(UNSUBSCRIBE));
+        } else if(object.hasHref(SUBSCRIBE)) {
+            throw new IllegalArgumentException("the object is not subscribed");
+        } else {
+            throw new IllegalArgumentException("the object is not unsubscribable");
+        }
+    }
+    
+    @Override
+    public Feed<RestObject> getSubscriptions(String... params) {
+        return objectFeed(SUBSCRIPTIONS, params);
+    }
+
+    @Override
+    public Feed<AuditPolicy> getAuditPolicies(String... params) {
+        return feed(AUDIT_POLICIES, JsonFeeds.AuditPolicyFeed.class, params);
+    }
+
+    @Override
+    public AuditPolicy createAuditPolicy(AuditPolicy auditPolicy) {
+        return post(getRepository().getHref(AUDIT_POLICIES), new JsonAuditPolicy(auditPolicy), JsonAuditPolicy.class);
+    }
+
+    @Override
+    public AuditPolicy getAuditPolicy(String uri, String... params) {
+        return get(uri, false, JsonAuditPolicy.class, params);
+    }
+
+    @Override
+    public AuditPolicy updateAuditPolicy(AuditPolicy oldPolicy, AuditPolicy newPolicy) {
+        return post(oldPolicy.getHref(EDIT), new JsonAuditPolicy(newPolicy), JsonAuditPolicy.class);
+    }
+
+    @Override
+    public void deleteAuditPolicy(AuditPolicy auditPolicy) {
+        delete(auditPolicy.self());
+    }
+
+    @Override
+    public Feed<RestObject> getRecentAuditTrails(String... params) {
+        return feed(getCurrentUser(), RECENT_TRAILS, JsonFeeds.ObjectFeed.class, params);
+    }
+
+    @Override
+    public AuditTrail getAuditTrail(String auditTrailUri, String... params) {
+        return get(auditTrailUri, false, JsonAuditTrail.class, params);
+    }
+
+    @Override
+    public AvailableAuditEvents getAvailableAuditEvents(String... params) {
+        return getRepository().hasHref(AVAILABLE_AUDIT_EVENTS)?
+            get(getRepository().getHref(AVAILABLE_AUDIT_EVENTS), JsonAvailableAuditEvents.class, params):null;
+    }
+
+    @Override
+    public Feed<RestObject> getRegisteredAuditEvents(String... params) {
+        return feed(getRepository(), REGISTERED_AUDIT_EVENTS, JsonFeeds.ObjectFeed.class, params);
+    }
+
+    @Override
+    public RestObject registerAuditEvent(RestObject auditEvent, String... params) {
+        return post(getRepository().getHref(REGISTERED_AUDIT_EVENTS), new JsonObject(auditEvent), JsonObject.class, params);
+    }
+
+    @Override
+    public RestObject getRegisteredAuditEvent(String uri, String... params) {
+        return getObject(uri, params);
+    }
+
+    @Override
+    public void unregisterAuditEvent(RestObject auditEvent) {
+        delete(auditEvent);
     }
 }

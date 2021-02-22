@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. EMC Corporation. All Rights Reserved.
+ * Copyright (c) 2018. Open Text Corporation. All Rights Reserved.
  */
 package com.emc.documentum.rest.client.sample.model.xml.jaxb;
 
@@ -12,9 +12,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.emc.documentum.rest.client.sample.client.util.Equals;
 import com.emc.documentum.rest.client.sample.model.Preference;
-import com.emc.documentum.rest.client.sample.model.xml.XMLNamespace;
 
-@XmlRootElement(name = "preference", namespace = XMLNamespace.DM_NAMESPACE)
+@XmlRootElement(name = "preference")
 public class JaxbPreference extends JaxbDmLinkableBase implements Preference {
     private String client;
     private String owner;
@@ -77,8 +76,8 @@ public class JaxbPreference extends JaxbDmLinkableBase implements Preference {
     }
 
     @Override
-    @XmlElementWrapper(name = "keywords")
-    @XmlElement(name = "item", namespace=XMLNamespace.DM_NAMESPACE)
+    @XmlElementWrapper
+    @XmlElement(name = "item")
     public List<String> getKeywords() {
         return keywords;
     }

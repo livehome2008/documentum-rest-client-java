@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. EMC Corporation. All Rights Reserved.
+ * Copyright (c) 2018. Open Text Corporation. All Rights Reserved.
  */
 package com.emc.documentum.rest.client.sample.model.xml.jaxb;
 
@@ -12,9 +12,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.emc.documentum.rest.client.sample.client.util.Equals;
 import com.emc.documentum.rest.client.sample.model.ObjectAspects;
-import com.emc.documentum.rest.client.sample.model.xml.XMLNamespace;
 
-@XmlRootElement(name="object-aspects", namespace=XMLNamespace.DM_NAMESPACE)
+@XmlRootElement(name="object-aspects")
 public class JaxbObjectAspects extends JaxbDmLinkableBase implements ObjectAspects {
 
     private List<String> aspects;
@@ -24,6 +23,10 @@ public class JaxbObjectAspects extends JaxbDmLinkableBase implements ObjectAspec
 
     public JaxbObjectAspects(String... aspects) {
         this.aspects = Arrays.asList(aspects);
+    }
+    
+    public JaxbObjectAspects(ObjectAspects aspects) {
+        this.aspects = aspects.getAspects();
     }
     
     @Override

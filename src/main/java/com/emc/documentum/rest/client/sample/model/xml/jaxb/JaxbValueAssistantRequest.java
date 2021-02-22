@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. EMC Corporation. All Rights Reserved.
+ * Copyright (c) 2018. Open Text Corporation. All Rights Reserved.
  */
 package com.emc.documentum.rest.client.sample.model.xml.jaxb;
 
@@ -20,7 +20,7 @@ import com.emc.documentum.rest.client.sample.client.util.Equals;
 import com.emc.documentum.rest.client.sample.model.ValueAssistantRequest;
 import com.emc.documentum.rest.client.sample.model.xml.XMLNamespace;
 
-@XmlRootElement(name="assist-value-request", namespace=XMLNamespace.DM_NAMESPACE)
+@XmlRootElement(name="assist-value-request")
 public class JaxbValueAssistantRequest implements ValueAssistantRequest {
     @XmlTransient
     protected Map<String, Object> properties;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. EMC Corporation. All Rights Reserved.
+ * Copyright (c) 2018. Open Text Corporation. All Rights Reserved.
  */
 package com.emc.documentum.rest.client.sample.model.xml.jaxb;
 
@@ -9,6 +9,7 @@ import java.util.Objects;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
@@ -16,15 +17,15 @@ import com.emc.documentum.rest.client.sample.client.util.Equals;
 import com.emc.documentum.rest.client.sample.model.batch.Attachment;
 import com.emc.documentum.rest.client.sample.model.batch.Header;
 import com.emc.documentum.rest.client.sample.model.batch.SettableRequest;
-import com.emc.documentum.rest.client.sample.model.xml.XMLNamespace;
 
-@XmlRootElement(name="request", namespace=XMLNamespace.DM_NAMESPACE)
+@XmlRootElement(name="request")
 public class JaxbBatchRequest implements SettableRequest {
     private String uri;
     private String method;
     private List<JaxbBatchHeader> headers;
     private String entity;
     private JaxbBatchAttachment attachment;
+    private List<JaxbBatchAttachment> attachments;
         
     @Override
     @XmlAttribute
@@ -57,6 +58,26 @@ public class JaxbBatchRequest implements SettableRequest {
     @Override
     public void setAttachment(Attachment attachment) {
         this.attachment = (JaxbBatchAttachment)attachment;
+    }
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @Override
+    @XmlElementWrapper
+    @XmlElement(name = "attachment", type = JaxbBatchAttachment.class)
+    public List<Attachment> getAttachments() {
+        return (List)attachments;
+    }
+
+    public void setAttachments(List<JaxbBatchAttachment> attachments) {
+        this.attachments = attachments;
+    }
+    
+    @Override
+    public void addAttachment(Attachment attachment) {
+        if(attachments == null) {
+            attachments = new ArrayList<>();
+        }
+        attachments.add((JaxbBatchAttachment)attachment);
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
